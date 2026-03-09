@@ -259,7 +259,15 @@ export function VisitorFormDialog({
                         <Label>Industry / Sector *</Label>
                         <Select
                             value={selectedIndustry || ""}
-                            onValueChange={(v) => setValue("industry", v as Industry)}
+                            onValueChange={(v) => {
+                                setValue("industry", v as Industry);
+                                if (v === "marginalized") {
+                                    setValue("industry_detail", undefined);
+                                    setValue("industry_location", undefined);
+                                } else {
+                                    setValue("marginalized_type", undefined);
+                                }
+                            }}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select industry" />

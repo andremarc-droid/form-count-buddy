@@ -90,7 +90,7 @@ const AdminVisitors = () => {
                   <TableCell>{v.age}</TableCell>
                   <TableCell className="capitalize">{v.gender}</TableCell>
                   <TableCell>{formatLabel(v.industry)}</TableCell>
-                  <TableCell>{v.industry_detail || "—"}</TableCell>
+                  <TableCell>{v.industry === "marginalized" ? formatLabel(v.marginalized_type ?? "") || "—" : v.industry_detail || "—"}</TableCell>
                   <TableCell>{formatLabel(v.purpose)}</TableCell>
                   <TableCell>{v.visit_date}</TableCell>
                   <TableCell className="text-right">

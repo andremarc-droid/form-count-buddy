@@ -196,7 +196,15 @@ const VisitorForm = () => {
               {/* Industry */}
               <div className="space-y-2">
                 <Label>Industry / Sector *</Label>
-                <Select onValueChange={(v) => setValue("industry", v as Industry)}>
+                <Select onValueChange={(v) => {
+                  setValue("industry", v as Industry);
+                  if (v === "marginalized") {
+                    setValue("industry_detail", undefined);
+                    setValue("industry_location", undefined);
+                  } else {
+                    setValue("marginalized_type", undefined);
+                  }
+                }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select industry" />
                   </SelectTrigger>
