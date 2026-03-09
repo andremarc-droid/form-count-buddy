@@ -1,7 +1,7 @@
 import { db } from "@/lib/firebase";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, updateDoc } from "firebase/firestore";
 
 export type VisitorRow = {
   id: string;
@@ -49,6 +49,49 @@ export function useVisitorData(dateRange?: { from: Date; to: Date }) {
       });
 
       return rows;
+    },
+  });
+}
+
+export type VisitorFormData = Omit<VisitorRow, "id" | "visit_date" | "visit_time" | "created_at">;
+
+export function useAddVisitor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: VisitorFormData) => {
+      await addDoc(collection(db, "visitors"), {
+        ...data,
+        timestamp: serverTimestamp(),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+  });
+}
+
+export function useUpdateVisitor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: VisitorFormData }) => {
+      const docRef = doc(db, "visitors", id);
+      await updateDoc(docRef, { ...data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+  });
+}
+
+export function useDeleteVisitor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const docRef = doc(db, "visitors", id);
+      await deleteDoc(docRef);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
     },
   });
 }
