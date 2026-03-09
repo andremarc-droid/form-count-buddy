@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foot Traffic Monitor — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1a3a8f; --blue-light: #2756d4; --blue-pale: #eef2ff;
+    --red: #e02020; --yellow: #f5c518; --green: #1ab259;
+    --gray-bg: #f4f6fb; --gray-border: #e4e8f0; --gray-text: #6b7280;
+    --dark: #1a1d2e; --white: #ffffff; --sidebar-w: 240px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--gray-bg); color: var(--dark); display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { width: var(--sidebar-w); background: var(--blue); min-height: 100vh; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; box-shadow: 4px 0 24px rgba(26,58,143,0.15); }
+  .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .logo-badge { display: inline-block; background: var(--red); color: #fff; font-family: 'Sora', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }
+  .logo-title { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.3; text-transform: uppercase; letter-spacing: 0.04em; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 3px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .sidebar-nav { padding: 16px 12px; flex: 1; }
+  .nav-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 0 8px; margin: 16px 0 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65); margin-bottom: 2px; user-select: none; }
+  .nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-item.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 700; }
+  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .admin-info { display: flex; align-items: center; gap: 10px; }
+  .admin-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .admin-name { font-size: 12px; font-weight: 600; color: #fff; }
+  .admin-role { font-size: 10px; color: rgba(255,255,255,0.45); }
+
+  /* ── MAIN ── */
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+  .topbar { background: var(--white); border-bottom: 1px solid var(--gray-border); padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .topbar-left h1 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); }
+  .topbar-left p { font-size: 12px; color: var(--gray-text); margin-top: 1px; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .live-badge { display: flex; align-items: center; gap: 6px; background: #e8faf0; border: 1px solid #a8e8c4; border-radius: 999px; padding: 5px 12px; font-size: 11px; font-weight: 600; color: var(--green); }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.5s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  .export-btn { display: flex; align-items: center; gap: 6px; background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .export-btn:hover { background: var(--blue-light); transform: translateY(-1px); }
+
+  /* ── PAGES ── */
+  .page { display: none; padding: 24px 28px; flex-direction: column; gap: 24px; animation: fadeUp 0.3s ease both; }
+  .page.active { display: flex; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── SHARED COMPONENTS ── */
+  .filter-bar { background: var(--white); border: 1px solid var(--gray-border); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .filter-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-text); white-space: nowrap; }
+  .filter-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .filter-select { padding: 7px 12px; border: 1.5px solid var(--gray-border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--dark); background: var(--gray-bg); cursor: pointer; outline: none; transition: border-color 0.15s; }
+  .filter-select:focus { border-color: var(--blue); }
+  .filter-chip { padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: 1.5px solid var(--gray-border); background: var(--white); color: var(--gray-text); }
+  .filter-chip.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .filter-chip:hover:not(.active) { border-color: var(--blue); color: var(--blue); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card { background: var(--white); border: 1px solid var(--gray-border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,58,143,0.1); }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0; }
+  .stat-card.blue::before { background:var(--blue); } .stat-card.green::before { background:var(--green); }
+  .stat-card.red::before { background:var(--red); } .stat-card.yellow::before { background:var(--yellow); }
+  .stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:14px; }
+  .stat-card.blue .stat-icon { background:#eef2ff; } .stat-card.green .stat-icon { background:#e8faf0; }
+  .stat-card.red .stat-icon { background:#fff0f0; } .stat-card.yellow .stat-icon { background:#fffbe6; }
+  .stat-value { font-family:'Sora',sans-serif; font-size:28px; font-weight:800; color:var(--dark); line-height:1; margin-bottom:4px; }
+  .stat-label { font-size:12px; color:var(--gray-text); font-weight:500; }
+  .stat-trend { position:absolute; top:20px; right:20px; font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; }
+  .trend-up { background:#e8faf0; color:var(--green); } .trend-down { background:#fff0f0; color:var(--red); }
+
+  .chart-card { background:var(--white); border:1px solid var(--gray-border); border-radius:16px; padding:20px; }
+  .chart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .chart-title { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; color:var(--dark); }
+  .chart-sub { font-size:11px; color:var(--gray-text); margin-top:2px; }
+  .chart-tag { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; background:var(--blue-pale); color:var(--blue); padding:4px 10px; border-radius:999px; }
+  .charts-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+  .bottom-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+  .table-card { background:var(--white); border:1px solid var(--gray-border); border-radius:16px; overflow:hidden; }
+  .table-header { padding:18px 20px; border-bottom:1px solid var(--gray-border); display:flex; align-items:center; justify-content:space-between; }
+  .table-title { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; }
+  table { width:100%; border-collapse:collapse; }
+  thead th { padding:10px 20px; text-align:left; font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--gray-text); background:var(--gray-bg); border-bottom:1px solid var(--gray-border); }
+  tbody td { padding:12px 20px; font-size:13px; color:var(--dark); border-bottom:1px solid var(--gray-border); }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr:hover td { background:var(--gray-bg); }
+  .industry-pill { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+  .pill-blue { background:#eef2ff; color:var(--blue); } .pill-green { background:#e8faf0; color:var(--green); }
+  .pill-red { background:#fff0f0; color:var(--red); } .pill-yellow { background:#fffbe6; color:#b8860b; }
+
+  /* PAGE HEADER */
+  .page-heading { font-family:'Sora',sans-serif; font-size:22px; font-weight:800; color:var(--dark); }
+  .page-desc { font-size:13px; color:var(--gray-text); margin-top:4px; }
+
+  /* EXPORT PANEL */
+  .export-panel { background:var(--white); border:1px solid var(--gray-border); border-radius:16px; padding:24px; }
+  .export-title { font-family:'Sora',sans-serif; font-size:16px; font-weight:700; margin-bottom:4px; }
+  .export-sub { font-size:12px; color:var(--gray-text); margin-bottom:20px; }
+  .export-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .export-item { border:1.5px solid var(--gray-border); border-radius:12px; padding:16px; cursor:pointer; transition:all 0.15s; display:flex; flex-direction:column; gap:4px; }
+  .export-item:hover { border-color:var(--blue); background:var(--blue-pale); transform:translateY(-2px); }
+  .export-item .ei-icon { font-size:24px; margin-bottom:4px; }
+  .export-item .ei-title { font-size:13px; font-weight:600; color:var(--dark); }
+  .export-item .ei-desc { font-size:11px; color:var(--gray-text); }
+  .export-formats { display:flex; gap:10px; }
+  .format-btn { flex:1; padding:12px; border-radius:10px; border:1.5px solid var(--gray-border); background:var(--white); font-family:'Sora',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .format-btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+  .format-btn.csv { color:var(--green); } .format-btn.csv:hover { border-color:var(--green); background:#e8faf0; }
+  .format-btn.xlsx { color:var(--blue); } .format-btn.xlsx:hover { border-color:var(--blue); background:var(--blue-pale); }
+  .format-btn.pdf { color:var(--red); } .format-btn.pdf:hover { border-color:var(--red); background:#fff0f0; }
+
+  /* SETTINGS */
+  .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .settings-card { background:var(--white); border:1px solid var(--gray-border); border-radius:16px; padding:22px; }
+  .settings-card-title { font-family:'Sora',sans-serif; font-size:14px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .setting-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--gray-border); }
+  .setting-row:last-child { border-bottom:none; }
+  .setting-label { font-size:13px; font-weight:500; color:var(--dark); }
+  .setting-desc { font-size:11px; color:var(--gray-text); margin-top:2px; }
+  .toggle { width:44px; height:24px; background:#d1d5db; border-radius:999px; cursor:pointer; position:relative; transition:background 0.2s; flex-shrink:0; }
+  .toggle.on { background:var(--blue); }
+  .toggle::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:transform 0.2s; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+  .toggle.on::after { transform:translateX(20px); }
+  .text-input { padding:8px 12px; border:1.5px solid var(--gray-border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:13px; width:160px; outline:none; }
+  .text-input:focus { border-color:var(--blue); }
+  .save-btn { background:var(--blue); color:#fff; border:none; border-radius:8px; padding:10px 20px; font-family:'Sora',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .save-btn:hover { background:var(--blue-light); }
+
+  /* VISITOR LOGS */
+  .search-bar { display:flex; gap:10px; align-items:center; }
+  .search-input { flex:1; padding:10px 14px; border:1.5px solid var(--gray-border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s; }
+  .search-input:focus { border-color:var(--blue); }
+  .badge-count { background:var(--blue-pale); color:var(--blue); font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">TECH4ED</div>
+    <div class="logo-title">Digital<br>Transformation<br>Centers</div>
+    <div class="logo-sub">Admin Portal</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item" data-page="visitor-logs"><span class="nav-icon">👥</span> Visitor Logs</div>
+    <div class="nav-item" data-page="analytics"><span class="nav-icon">📈</span> Analytics</div>
+    <div class="nav-label">Reports</div>
+    <div class="nav-item" data-page="daily"><span class="nav-icon">📅</span> Daily Summary</div>
+    <div class="nav-item" data-page="monthly"><span class="nav-icon">🗓️</span> Monthly Report</div>
+    <div class="nav-item" data-page="industry"><span class="nav-icon">🏭</span> Industry Report</div>
+    <div class="nav-item" data-page="export"><span class="nav-icon">⬇️</span> Export Data</div>
+    <div class="nav-label">System</div>
+    <div class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span> Settings</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="admin-info">
+      <div class="admin-avatar">👤</div>
+      <div><div class="admin-name">Admin User</div><div class="admin-role">System Administrator</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="topbar-title">Foot Traffic Dashboard</h1>
+      <p>Monday, March 9, 2026 · TECH4ED Digital Transformation Centers</p>
+    </div>
+    <div class="topbar-right">
+      <div class="live-badge"><div class="live-dot"></div> Live</div>
+      <button class="export-btn" onclick="navigate('export')">⬇ Export Report</button>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD PAGE ══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Filters</span>
+      <div class="filter-group">
+        <select class="filter-select"><option>Today</option><option>This Week</option><option>This Month</option></select>
+        <input type="date" class="filter-select" value="2026-03-09">
+        <select class="filter-select"><option>All Industries</option><option>Academe</option><option>Government</option><option>MSME</option><option>Private Sector</option></select>
+        <select class="filter-select"><option>All Purposes</option><option>Training Room</option><option>Co-Working Room</option><option>Conference Room</option></select>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <div class="filter-chip active">Daily</div>
+        <div class="filter-chip">Weekly</div>
+        <div class="filter-chip">Monthly</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon">🚶</div><div class="stat-value">142</div><div class="stat-label">Total Daily Visitors</div><div class="stat-trend trend-up">↑ 12%</div></div>
+      <div class="stat-card green"><div class="stat-icon">📅</div><div class="stat-value">874</div><div class="stat-label">Total Weekly Visitors</div><div class="stat-trend trend-up">↑ 8%</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">🗓️</div><div class="stat-value">3,241</div><div class="stat-label">Total Monthly Visitors</div><div class="stat-trend trend-up">↑ 5%</div></div>
+      <div class="stat-card red"><div class="stat-icon">🏭</div><div class="stat-value">4</div><div class="stat-label">Active Industry Sectors</div><div class="stat-trend trend-down">No change</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Weekly Foot Traffic</div><div class="chart-sub">Daily visitor count this week</div></div><span class="chart-tag">Bar Chart</span></div><canvas id="barChart" height="200"></canvas></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Industry Distribution</div><div class="chart-sub">% share by sector</div></div><span class="chart-tag">Pie</span></div><canvas id="pieChart" height="200"></canvas></div>
+    </div>
+    <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Monthly Visitor Trend</div><div class="chart-sub">Per industry — 2026</div></div><span class="chart-tag">Line Graph</span></div><canvas id="lineChart" height="90"></canvas></div>
+    <div class="bottom-row">
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Recent Visitors Today</div><span class="chart-tag">Live</span></div>
+        <table><thead><tr><th>Name</th><th>Industry</th><th>Purpose</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr><td>Juan D. Cruz</td><td><span class="industry-pill pill-blue">Academe</span></td><td>Training Room</td><td>8:42 AM</td></tr>
+          <tr><td>Maria Santos</td><td><span class="industry-pill pill-green">Government</span></td><td>Conference Room</td><td>9:05 AM</td></tr>
+          <tr><td>Pedro Reyes</td><td><span class="industry-pill pill-yellow">MSME</span></td><td>Co-Working Room</td><td>9:18 AM</td></tr>
+          <tr><td>Ana Lim</td><td><span class="industry-pill pill-red">Private</span></td><td>Training Room</td><td>9:33 AM</td></tr>
+          <tr><td>Carlo Bautista</td><td><span class="industry-pill pill-blue">Academe</span></td><td>Co-Working Room</td><td>9:47 AM</td></tr>
+        </tbody></table>
+      </div>
+      <div class="export-panel">
+        <div class="export-title">📤 Quick Export</div>
+        <div class="export-sub">Download visitor reports instantly</div>
+        <div class="export-formats">
+          <button class="format-btn csv">📄 CSV</button>
+          <button class="format-btn xlsx">📊 Excel</button>
+          <button class="format-btn pdf">📕 PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ VISITOR LOGS PAGE ══ -->
+  <div class="page" id="page-visitor-logs">
+    <div><div class="page-heading">👥 Visitor Logs</div><div class="page-desc">Complete record of all registered visitors</div></div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Search</span>
+      <div class="filter-group">
+        <input type="text" class="search-input" placeholder="Search by name...">
+        <select class="filter-select"><option>All Industries</option><option>Academe</option><option>Government</option><option>MSME</option><option>Private</option></select>
+        <select class="filter-select"><option>All Purposes</option><option>Training Room</option><option>Co-Working</option><option>Conference Room</option></select>
+        <input type="date" class="filter-select" value="2026-03-09">
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">All Visitors</div><span class="badge-count">142 today</span></div>
+      <table><thead><tr><th>#</th><th>Full Name</th><th>Age</th><th>Gender</th><th>Industry</th><th>Purpose</th><th>Date & Time</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Juan D. Cruz</td><td>28</td><td>Male</td><td><span class="industry-pill pill-blue">Academe</span></td><td>Training Room</td><td>Mar 9, 8:42 AM</td></tr>
+        <tr><td>2</td><td>Maria Santos</td><td>34</td><td>Female</td><td><span class="industry-pill pill-green">Government</span></td><td>Conference Room</td><td>Mar 9, 9:05 AM</td></tr>
+        <tr><td>3</td><td>Pedro Reyes</td><td>45</td><td>Male</td><td><span class="industry-pill pill-yellow">MSME</span></td><td>Co-Working Room</td><td>Mar 9, 9:18 AM</td></tr>
+        <tr><td>4</td><td>Ana Lim</td><td>22</td><td>Female</td><td><span class="industry-pill pill-red">Private</span></td><td>Training Room</td><td>Mar 9, 9:33 AM</td></tr>
+        <tr><td>5</td><td>Carlo Bautista</td><td>31</td><td>Male</td><td><span class="industry-pill pill-blue">Academe</span></td><td>Co-Working Room</td><td>Mar 9, 9:47 AM</td></tr>
+        <tr><td>6</td><td>Liza Mendoza</td><td>27</td><td>Female</td><td><span class="industry-pill pill-green">Government</span></td><td>Training Room</td><td>Mar 9, 10:02 AM</td></tr>
+        <tr><td>7</td><td>Ramon Dela Cruz</td><td>52</td><td>Male</td><td><span class="industry-pill pill-yellow">MSME</span></td><td>Conference Room</td><td>Mar 9, 10:15 AM</td></tr>
+        <tr><td>8</td><td>Sofia Garcia</td><td>19</td><td>Female</td><td><span class="industry-pill pill-blue">Academe</span></td><td>Training Room</td><td>Mar 9, 10:28 AM</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ ANALYTICS PAGE ══ -->
+  <div class="page" id="page-analytics">
+    <div><div class="page-heading">📈 Analytics</div><div class="page-desc">Deep dive into visitor patterns and trends</div></div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon">📊</div><div class="stat-value">68%</div><div class="stat-label">Academe Dominance</div><div class="stat-trend trend-up">↑ Top sector</div></div>
+      <div class="stat-card green"><div class="stat-icon">⏰</div><div class="stat-value">9 AM</div><div class="stat-label">Peak Visit Hour</div><div class="stat-trend trend-up">Most active</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">📅</div><div class="stat-value">Wed</div><div class="stat-label">Busiest Day</div><div class="stat-trend trend-up">Avg 145/day</div></div>
+      <div class="stat-card red"><div class="stat-icon">🎯</div><div class="stat-value">42%</div><div class="stat-label">Training Room Use</div><div class="stat-trend trend-up">↑ Most popular</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Purpose of Visit Breakdown</div><div class="chart-sub">Distribution by room/purpose</div></div><span class="chart-tag">Bar</span></div><canvas id="analyticsBar" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Gender Distribution</div><div class="chart-sub">Male vs Female visitors</div></div><span class="chart-tag">Doughnut</span></div><canvas id="genderChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Hourly Traffic Pattern</div><div class="chart-sub">Average visitors per hour of day</div></div><span class="chart-tag">Line</span></div><canvas id="hourlyChart" height="90"></canvas></div>
+  </div>
+
+  <!-- ══ DAILY SUMMARY PAGE ══ -->
+  <div class="page" id="page-daily">
+    <div><div class="page-heading">📅 Daily Summary</div><div class="page-desc">Visitor summary for today — March 9, 2026</div></div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon">🚶</div><div class="stat-value">142</div><div class="stat-label">Total Visitors Today</div><div class="stat-trend trend-up">↑ 12%</div></div>
+      <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-value">142</div><div class="stat-label">Consented</div><div class="stat-trend trend-up">100%</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">🏆</div><div class="stat-value">54</div><div class="stat-label">Academe Visitors</div><div class="stat-trend trend-up">38%</div></div>
+      <div class="stat-card red"><div class="stat-icon">🏠</div><div class="stat-value">60</div><div class="stat-label">Training Room Visits</div><div class="stat-trend trend-up">42%</div></div>
+    </div>
+    <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Today's Hourly Visitor Count</div><div class="chart-sub">March 9, 2026</div></div><span class="chart-tag">Bar</span></div><canvas id="dailyChart" height="100"></canvas></div>
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">Today's Full Log</div><span class="badge-count">142 visitors</span></div>
+      <table><thead><tr><th>Name</th><th>Industry</th><th>Purpose</th><th>Time In</th></tr></thead>
+      <tbody>
+        <tr><td>Juan D. Cruz</td><td><span class="industry-pill pill-blue">Academe</span></td><td>Training Room</td><td>8:42 AM</td></tr>
+        <tr><td>Maria Santos</td><td><span class="industry-pill pill-green">Government</span></td><td>Conference Room</td><td>9:05 AM</td></tr>
+        <tr><td>Pedro Reyes</td><td><span class="industry-pill pill-yellow">MSME</span></td><td>Co-Working Room</td><td>9:18 AM</td></tr>
+        <tr><td>Ana Lim</td><td><span class="industry-pill pill-red">Private</span></td><td>Training Room</td><td>9:33 AM</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ MONTHLY REPORT PAGE ══ -->
+  <div class="page" id="page-monthly">
+    <div><div class="page-heading">🗓️ Monthly Report</div><div class="page-desc">Visitor summary for March 2026</div></div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon">🚶</div><div class="stat-value">3,241</div><div class="stat-label">Total Monthly Visitors</div><div class="stat-trend trend-up">↑ 5%</div></div>
+      <div class="stat-card green"><div class="stat-icon">📅</div><div class="stat-value">9</div><div class="stat-label">Days Recorded</div><div class="stat-trend trend-up">This month</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">📊</div><div class="stat-value">360</div><div class="stat-label">Daily Average</div><div class="stat-trend trend-up">↑ Consistent</div></div>
+      <div class="stat-card red"><div class="stat-icon">🏆</div><div class="stat-value">Academe</div><div class="stat-label">Top Industry</div><div class="stat-trend trend-up">38%</div></div>
+    </div>
+    <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Monthly Trend by Industry</div><div class="chart-sub">All sectors — March 2026</div></div><span class="chart-tag">Line</span></div><canvas id="monthlyChart" height="100"></canvas></div>
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">Weekly Breakdown</div></div>
+      <table><thead><tr><th>Week</th><th>Academe</th><th>Government</th><th>MSME</th><th>Private</th><th>Total</th></tr></thead>
+      <tbody>
+        <tr><td>Week 1 (Mar 1–7)</td><td>312</td><td>210</td><td>158</td><td>110</td><td><strong>790</strong></td></tr>
+        <tr><td>Week 2 (Mar 8–9)</td><td>108</td><td>74</td><td>55</td><td>39</td><td><strong>276</strong></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ INDUSTRY REPORT PAGE ══ -->
+  <div class="page" id="page-industry">
+    <div><div class="page-heading">🏭 Industry Report</div><div class="page-desc">Visitor breakdown by industry sector</div></div>
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-icon">🎓</div><div class="stat-value">1,231</div><div class="stat-label">Academe</div><div class="stat-trend trend-up">38%</div></div>
+      <div class="stat-card green"><div class="stat-icon">🏛️</div><div class="stat-value">875</div><div class="stat-label">Government</div><div class="stat-trend trend-up">27%</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">🛒</div><div class="stat-value">648</div><div class="stat-label">MSME</div><div class="stat-trend trend-up">20%</div></div>
+      <div class="stat-card red"><div class="stat-icon">🏢</div><div class="stat-value">487</div><div class="stat-label">Private Sector</div><div class="stat-trend trend-up">15%</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Visitors per Industry</div><div class="chart-sub">Monthly comparison</div></div><span class="chart-tag">Bar</span></div><canvas id="industryBar" height="220"></canvas></div>
+      <div class="chart-card"><div class="chart-header"><div><div class="chart-title">Industry Share</div><div class="chart-sub">Percentage distribution</div></div><span class="chart-tag">Pie</span></div><canvas id="industryPie" height="220"></canvas></div>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">Industry × Purpose Matrix</div></div>
+      <table><thead><tr><th>Industry</th><th>Training Room</th><th>Co-Working</th><th>Conference</th><th>Others</th><th>Total</th></tr></thead>
+      <tbody>
+        <tr><td><span class="industry-pill pill-blue">Academe</span></td><td>520</td><td>380</td><td>210</td><td>121</td><td><strong>1,231</strong></td></tr>
+        <tr><td><span class="industry-pill pill-green">Government</span></td><td>290</td><td>180</td><td>280</td><td>125</td><td><strong>875</strong></td></tr>
+        <tr><td><span class="industry-pill pill-yellow">MSME</span></td><td>210</td><td>280</td><td>95</td><td>63</td><td><strong>648</strong></td></tr>
+        <tr><td><span class="industry-pill pill-red">Private</span></td><td>190</td><td>150</td><td>100</td><td>47</td><td><strong>487</strong></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ EXPORT PAGE ══ -->
+  <div class="page" id="page-export">
+    <div><div class="page-heading">⬇️ Export Data</div><div class="page-desc">Generate and download visitor reports</div></div>
+    <div class="export-panel">
+      <div class="export-title">Select Report Type</div>
+      <div class="export-sub">Choose a report to generate then select your preferred format</div>
+      <div class="export-grid">
+        <div class="export-item"><div class="ei-icon">📋</div><div class="ei-title">Daily Visitor Summary</div><div class="ei-desc">All visitors for a selected date</div></div>
+        <div class="export-item"><div class="ei-icon">📆</div><div class="ei-title">Monthly Visitor Summary</div><div class="ei-desc">Full month breakdown by day</div></div>
+        <div class="export-item"><div class="ei-icon">🏭</div><div class="ei-title">Industry-Based Summary</div><div class="ei-desc">Grouped by sector and purpose</div></div>
+        <div class="export-item"><div class="ei-icon">📊</div><div class="ei-title">Trend Analysis Report</div><div class="ei-desc">Monthly patterns & growth</div></div>
+      </div>
+      <div style="margin-bottom:12px;font-size:12px;font-weight:600;color:var(--gray-text);">SELECT FORMAT</div>
+      <div class="export-formats">
+        <button class="format-btn csv">📄 Export as CSV</button>
+        <button class="format-btn xlsx">📊 Export as Excel</button>
+        <button class="format-btn pdf">📕 Export as PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS PAGE ══ -->
+  <div class="page" id="page-settings">
+    <div><div class="page-heading">⚙️ Settings</div><div class="page-desc">Configure system preferences</div></div>
+    <div class="settings-grid">
+      <div class="settings-card">
+        <div class="settings-card-title">🔔 Notifications</div>
+        <div class="setting-row"><div><div class="setting-label">Daily Report Email</div><div class="setting-desc">Send summary at end of day</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">Peak Traffic Alert</div><div class="setting-desc">Notify when visitors exceed 50/hr</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">Weekly Report</div><div class="setting-desc">Auto-send every Monday</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-title">🏢 Office Info</div>
+        <div class="setting-row"><div><div class="setting-label">Office Name</div></div><input class="text-input" value="TECH4ED Center"></div>
+        <div class="setting-row"><div><div class="setting-label">Admin Email</div></div><input class="text-input" value="admin@tech4ed.gov"></div>
+        <div class="setting-row" style="justify-content:flex-end;padding-top:16px;border-bottom:none;"><button class="save-btn">Save Changes</button></div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-title">🔒 Privacy & Data</div>
+        <div class="setting-row"><div><div class="setting-label">Auto-delete logs after</div><div class="setting-desc">Visitor records retention period</div></div><select class="filter-select"><option>30 days</option><option>60 days</option><option>90 days</option><option>1 year</option></select></div>
+        <div class="setting-row"><div><div class="setting-label">Require Consent</div><div class="setting-desc">Block registration if declined</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">Show Privacy Notice</div><div class="setting-desc">Display on visitor screen</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-title">📊 Dashboard</div>
+        <div class="setting-row"><div><div class="setting-label">Default Date Range</div></div><select class="filter-select"><option>Today</option><option>This Week</option><option>This Month</option></select></div>
+        <div class="setting-row"><div><div class="setting-label">Auto-refresh Data</div><div class="setting-desc">Refresh every 30 seconds</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="setting-row"><div><div class="setting-label">Dark Mode</div><div class="setting-desc">Switch to dark theme</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .main -->
+
+<script>
+const titles = {
+  dashboard: 'Foot Traffic Dashboard', 'visitor-logs': 'Visitor Logs',
+  analytics: 'Analytics', daily: 'Daily Summary', monthly: 'Monthly Report',
+  industry: 'Industry Report', export: 'Export Data', settings: 'Settings'
+};
+
+let charts = {};
+
+function navigate(pageId) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === pageId));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.getElementById('topbar-title').textContent = titles[pageId];
+  initCharts(pageId);
+}
+
+document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+  item.addEventListener('click', () => navigate(item.dataset.page));
+});
+
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    this.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+function makeChart(id, type, data, options={}) {
+  if (charts[id]) { charts[id].destroy(); }
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, { type, data, options: { responsive:true, ...options } });
+}
+
+function initCharts(page) {
+  const fontCfg = { font: { family: 'DM Sans', size: 11 } };
+  const gridColor = '#f0f2f8';
+
+  if (page === 'dashboard') {
+    makeChart('barChart','bar',{
+      labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+      datasets:[{label:'Visitors',data:[98,124,107,145,132,89,142],backgroundColor:'rgba(26,58,143,0.15)',borderColor:'#1a3a8f',borderWidth:2,borderRadius:8,borderSkipped:false}]
+    },{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gridColor},ticks:fontCfg},x:{grid:{display:false},ticks:fontCfg}}});
+
+    makeChart('pieChart','doughnut',{
+      labels:['Academe','Government','MSME','Private'],
+      datasets:[{data:[38,27,20,15],backgroundColor:['#1a3a8f','#1ab259','#f5c518','#e02020'],borderWidth:0,hoverOffset:8}]
+    },{cutout:'65%',plugins:{legend:{position:'bottom',labels:{...fontCfg,padding:14,usePointStyle:true}}}});
+
+    makeChart('lineChart','line',{
+      labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      datasets:[
+        {label:'Academe',data:[420,380,450,510,480,390,420,460,490,520,480,510],borderColor:'#1a3a8f',backgroundColor:'rgba(26,58,143,0.06)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#1a3a8f'},
+        {label:'Government',data:[280,310,290,340,320,280,300,320,350,330,310,340],borderColor:'#1ab259',backgroundColor:'rgba(26,178,89,0.05)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#1ab259'},
+        {label:'MSME',data:[180,200,220,190,210,230,200,220,240,210,230,250],borderColor:'#f5c518',backgroundColor:'rgba(245,197,24,0.05)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#f5c518'},
+        {label:'Private',data:[120,140,150,130,160,140,150,170,160,180,160,170],borderColor:'#e02020',backgroundColor:'rgba(224,32,32,0.04)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#e02020'}
+      ]
+    },{plugins:{legend:{position:'top',labels:{...fontCfg,usePointStyle:true,padding:20}}},scales:{y:{beginAtZero:false,grid:{color:gridColor},ticks:fontCfg},x:{grid:{display:false},ticks:fontCfg}}});
+  }
+
+  if (page === 'analytics') {
+    makeChart('analyticsBar','bar',{
+      labels:['Training Room','Co-Working','Conference Room','Others'],
+      datasets:[
+        {label:'Academe',data:[520,380,210,121],backgroundColor:'rgba(26,58,143,0.8)',borderRadius:6},
+        {label:'Government',data:[290,180,280,125],backgroundColor:'rgba(26,178,89,0.8)',borderRadius:6},
+        {label:'MSME',data:[210,280,95,63],backgroundColor:'rgba(245,197,24,0.8)',borderRadius:6},
+        {label:'Private',data:[190,150,100,47],backgroundColor:'rgba(224,32,32,0.8)',borderRadius:6}
+      ]
+    },{plugins:{legend:{position:'top',labels:{...fontCfg,usePointStyle:true,padding:16}}},scales:{x:{stacked:true,grid:{display:false},ticks:fontCfg},y:{stacked:true,grid:{color:gridColor},ticks:fontCfg}}});
+
+    makeChart('genderChart','doughnut',{
+      labels:['Male','Female'],
+      datasets:[{data:[58,42],backgroundColor:['#1a3a8f','#e02020'],borderWidth:0,hoverOffset:8}]
+    },{cutout:'60%',plugins:{legend:{position:'bottom',labels:{...fontCfg,padding:16,usePointStyle:true}}}});
+
+    makeChart('hourlyChart','line',{
+      labels:['6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM'],
+      datasets:[{label:'Avg Visitors',data:[2,5,18,42,38,28,22,35,40,30,20,12,4],borderColor:'#1a3a8f',backgroundColor:'rgba(26,58,143,0.08)',tension:0.4,fill:true,pointRadius:4,pointBackgroundColor:'#1a3a8f'}]
+    },{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gridColor},ticks:fontCfg},x:{grid:{display:false},ticks:fontCfg}}});
+  }
+
+  if (page === 'daily') {
+    makeChart('dailyChart','bar',{
+      labels:['8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM'],
+      datasets:[{label:'Visitors',data:[8,24,18,14,10,16,22,18,8,4],backgroundColor:'rgba(26,58,143,0.15)',borderColor:'#1a3a8f',borderWidth:2,borderRadius:8,borderSkipped:false}]
+    },{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gridColor},ticks:fontCfg},x:{grid:{display:false},ticks:fontCfg}}});
+  }
+
+  if (page === 'monthly') {
+    makeChart('monthlyChart','line',{
+      labels:['Mar 1','Mar 2','Mar 3','Mar 4','Mar 5','Mar 6','Mar 7','Mar 8','Mar 9'],
+      datasets:[
+        {label:'Academe',data:[120,98,145,130,110,88,142,118,135],borderColor:'#1a3a8f',tension:0.4,fill:false,pointRadius:4,pointBackgroundColor:'#1a3a8f'},
+        {label:'Government',data:[80,72,95,88,75,60,95,80,90],borderColor:'#1ab259',tension:0.4,fill:false,pointRadius:4,pointBackgroundColor:'#1ab259'},
+        {label:'MSME',data:[60,55,70,65,58,48,72,60,68],borderColor:'#f5c518',tension:0.4,fill:false,pointRadius:4,pointBackgroundColor:'#f5c518'},
+        {label:'Private',data:[45,40,55,50,44,36,54,46,52],borderColor:'#e02020',tension:0.4,fill:false,pointRadius:4,pointBackgroundColor:'#e02020'}
+      ]
+    },{plugins:{legend:{position:'top',labels:{...fontCfg,usePointStyle:true,padding:16}}},scales:{y:{beginAtZero:false,grid:{color:gridColor},ticks:fontCfg},x:{grid:{display:false},ticks:fontCfg}}});
+  }
+
+  if (page === 'industry') {
+    makeChart('industryBar','bar',{
+      labels:['Academe','Government','MSME','Private'],
+      datasets:[{label:'Total Visitors',data:[1231,875,648,487],backgroundColor:['#1a3a8f','#1ab259','#f5c518','#e02020'],borderWidth:0,borderRadius:10}]
+    },{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:gridColor},ticks:fontCfg},x:{grid:{display:false},ticks:fontCfg}}});
+
+    makeChart('industryPie','doughnut',{
+      labels:['Academe','Government','MSME','Private'],
+      datasets:[{data:[38,27,20,15],backgroundColor:['#1a3a8f','#1ab259','#f5c518','#e02020'],borderWidth:0,hoverOffset:8}]
+    },{cutout:'60%',plugins:{legend:{position:'bottom',labels:{...fontCfg,padding:14,usePointStyle:true}}}});
+  }
+}
+
+// Init dashboard charts on load
+initCharts('dashboard');
+</script>
+</body>
+</html>

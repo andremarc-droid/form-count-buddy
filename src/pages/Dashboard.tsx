@@ -1,10 +1,12 @@
 import AdminLayout from "@/components/AdminLayout";
-import { useVisitorData, computeStats } from "@/hooks/useVisitorData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, CalendarDays, TrendingUp, Activity } from "lucide-react";
+import { computeStats, useVisitorData } from "@/hooks/useVisitorData";
+import { Activity, CalendarDays, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { DateRange } from "react-day-picker";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 const COLORS = [
   "hsl(215, 75%, 45%)",
@@ -18,10 +20,17 @@ const Dashboard = () => {
   const { data: visitors = [], isLoading } = useVisitorData();
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [purposeFilter, setPurposeFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const filtered = visitors.filter((v) => {
     if (industryFilter !== "all" && v.industry !== industryFilter) return false;
     if (purposeFilter !== "all" && v.purpose !== purposeFilter) return false;
+    // Apply Date Range Filter
+    if (dateRange?.from) {
+      const visitDate = new Date(v.visit_date);
+      if (visitDate < dateRange.from) return false;
+      if (dateRange.to && visitDate > dateRange.to) return false;
+    }
     return true;
   });
 
@@ -42,7 +51,9 @@ const Dashboard = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+
         <Select value={industryFilter} onValueChange={setIndustryFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Industries" />
@@ -86,26 +97,6 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Daily Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">Daily Foot Traffic (Last 30 Days)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.dailyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                  <XAxis dataKey="date" fontSize={11} tickLine={false} />
-                  <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Industry Pie */}
         <Card>
           <CardHeader>

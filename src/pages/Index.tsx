@@ -1,34 +1,97 @@
-import { Link } from "react-router-dom";
+import bgImage from "@/assets/DTC.jpg";
+import logoImage from "@/assets/DTClogo.png";
 import { Button } from "@/components/ui/button";
-import { Users, BarChart3, Shield } from "lucide-react";
+import { ArrowLeft, CheckCircle, LogOut, XCircle } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
+  const [showThankYou, setShowThankYou] = useState(false);
+
+  const handleExit = () => {
+    // Attempting to close the window, or redirecting to a blank page as a fallback
+    window.location.href = "about:blank";
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6">
-      <div className="text-center max-w-lg animate-fade-in">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6">
-          <BarChart3 className="h-8 w-8 text-primary" />
+    <div
+      className="min-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6 bg-cover bg-center bg-no-repeat relative"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-0"></div>
+
+      <div className="text-center max-w-2xl w-full bg-card/95 p-6 sm:p-12 rounded-3xl shadow-2xl z-10 animate-fade-in border border-border/50 backdrop-blur-md">
+        <div className="flex flex-col items-center mb-6">
+          <img src={logoImage} alt="DTC Logo" className="h-20 sm:h-24 md:h-28 w-auto mb-6 drop-shadow-md object-contain" />
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-heading font-extrabold text-foreground tracking-tight mb-2">
+            Foot Traffic Monitor
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground font-medium mb-6 sm:mb-8">
+            Digital visitor registration system
+          </p>
         </div>
-        <h1 className="text-4xl font-heading font-bold text-foreground mb-3">
-          Foot Traffic Monitor
-        </h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          Digital visitor registration and analytics system
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild size="lg">
-            <Link to="/visitor-form">
-              <Users className="h-5 w-5 mr-2" />
-              Visitor Registration
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link to="/admin/login">
-              <Shield className="h-5 w-5 mr-2" />
-              Admin Dashboard
-            </Link>
-          </Button>
-        </div>
+
+        {!showThankYou ? (
+          <>
+            <div className="bg-primary/5 p-5 sm:p-8 rounded-2xl mb-8 border border-primary/10 relative overflow-hidden text-left shadow-inner">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-primary/60 rounded-l-2xl"></div>
+              <p className="text-sm sm:text-base md:text-lg text-foreground/90 leading-relaxed italic font-medium">
+                "Kini nga aplikasyon nagsilbi isip monitoring system alang sa mga indibidwal nga mobisita sa maong opisina. Kami magahangyo sa inyong pagtugot sa paghatag sa inyong personal nga impormasyon para sa monitoring ug record-keeping nga katuyoan, kung komportable kamo sa pagbuhat niini."
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full">
+              <Button asChild size="lg" className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-300 hover:-translate-y-1">
+                <Link to="/visitor-form">
+                  <CheckCircle className="h-5 w-5 mr-2 shrink-0" />
+                  Mutugot Ko
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200 hover:border-rose-300 transition-all duration-300 hover:-translate-y-1"
+                onClick={() => setShowThankYou(true)}
+              >
+                <XCircle className="h-5 w-5 mr-2 shrink-0" />
+                Dili Ko Mutugot
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="animate-fade-in w-full flex flex-col items-center">
+            <div className="bg-muted/30 p-6 sm:p-8 rounded-2xl mb-8 border border-border/50 w-full">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Thank You</h2>
+              <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-2">
+                We respect your decision not to provide personal information.
+              </p>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                You can safely exit this page or go back if you change your mind.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full max-w-md">
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm hover:bg-muted/50 text-foreground transition-all duration-300 hover:-translate-y-1"
+                onClick={() => setShowThankYou(false)}
+              >
+                <ArrowLeft className="h-5 w-5 mr-2 shrink-0" />
+                Go Back
+              </Button>
+              <Button
+                variant="destructive"
+                size="lg"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-lg bg-rose-600 hover:bg-rose-700 text-white transition-all duration-300 hover:-translate-y-1"
+                onClick={handleExit}
+              >
+                <LogOut className="h-5 w-5 mr-2 shrink-0" />
+                Exit
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

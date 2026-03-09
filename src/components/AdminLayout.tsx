@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, FileText, LogOut, Users, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { BarChart3, FileText, LayoutDashboard, LineChart, LogOut, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   { label: "Visitors", icon: Users, path: "/admin/visitors" },
+  { label: "Analytics", icon: LineChart, path: "/admin/analytics" },
   { label: "Reports", icon: FileText, path: "/admin/reports" },
 ];
 
@@ -18,6 +19,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      if (localStorage.getItem("hardcodedAdmin") === "true") {
+        setLoading(false);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/admin/login");
@@ -26,7 +32,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) navigate("/admin/login");
+      if (!session && localStorage.getItem("hardcodedAdmin") !== "true") {
+        navigate("/admin/login");
+      }
     });
 
     checkAuth();
@@ -34,6 +42,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   }, [navigate]);
 
   const handleLogout = async () => {
+    localStorage.removeItem("hardcodedAdmin");
     await supabase.auth.signOut();
     navigate("/admin/login");
   };

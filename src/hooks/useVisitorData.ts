@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, subDays, parseISO } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
 
 export type VisitorRow = {
   id: string;
@@ -82,7 +82,42 @@ export function computeStats(data: VisitorRow[]) {
     });
   }
 
-  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend };
+  // Purpose by Month
+  const monthlyPurposeCount: Record<string, Record<string, number>> = {};
+  data.forEach((v) => {
+    const month = format(parseISO(v.visit_date), "MMM yyyy");
+    if (!monthlyPurposeCount[month]) {
+      monthlyPurposeCount[month] = {
+        training: 0,
+        coworking: 0,
+        conference_room: 0,
+        others: 0,
+      };
+    }
+    monthlyPurposeCount[month][v.purpose] = (monthlyPurposeCount[month][v.purpose] || 0) + 1;
+  });
+
+  const purposeByMonth = Object.entries(monthlyPurposeCount)
+    .map(([month, counts]) => ({ month, ...counts }))
+    .reverse();
+
+  // Top Occupations (from industry_detail)
+  const occupationCount: Record<string, number> = {};
+  data.forEach((v) => {
+    if (v.industry_detail) {
+      const occ = v.industry_detail.trim();
+      if (occ) {
+        occupationCount[occ] = (occupationCount[occ] || 0) + 1;
+      }
+    }
+  });
+
+  const topOccupations = Object.entries(occupationCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([name, count]) => ({ name, count }));
+
+  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, purposeByMonth, topOccupations };
 }
 
 export function formatLabel(key: string): string {
