@@ -266,7 +266,7 @@ const VisitorForm = () => {
 
               {/* Purpose */}
               <div className="space-y-2">
-                <Label>Purpose of Visit *</Label>
+                <Label>Facility to Use *</Label>
                 <Select onValueChange={(v) => setValue("purpose", v as Purpose)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select purpose" />

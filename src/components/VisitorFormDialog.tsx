@@ -348,7 +348,7 @@ export function VisitorFormDialog({
 
                     {/* Purpose */}
                     <div className="space-y-2">
-                        <Label>Purpose of Visit *</Label>
+                        <Label>Facility to Use *</Label>
                         <Select
                             value={selectedPurpose || ""}
                             onValueChange={(v) => setValue("purpose", v as Purpose)}
