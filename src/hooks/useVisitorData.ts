@@ -1,6 +1,7 @@
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/firebase";
 import { useQuery } from "@tanstack/react-query";
 import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 
 export type VisitorRow = {
   id: string;
@@ -12,6 +13,7 @@ export type VisitorRow = {
   industry_location: string | null;
   marginalized_type: string | null;
   purpose: string;
+  purpose_detail: string | null;
   visit_date: string;
   visit_time: string;
   created_at: string;
@@ -21,18 +23,32 @@ export function useVisitorData(dateRange?: { from: Date; to: Date }) {
   return useQuery({
     queryKey: ["visitors", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
-      let query = supabase.from("visitors").select("*").order("created_at", { ascending: false });
+      const visitorsRef = collection(db, "visitors");
+      const q = query(visitorsRef, orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
 
-      if (dateRange?.from) {
-        query = query.gte("visit_date", format(dateRange.from, "yyyy-MM-dd"));
-      }
-      if (dateRange?.to) {
-        query = query.lte("visit_date", format(dateRange.to, "yyyy-MM-dd"));
-      }
+      const rows: VisitorRow[] = snapshot.docs.map((doc) => {
+        const d = doc.data();
+        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as VisitorRow[];
+        return {
+          id: doc.id,
+          full_name: d.full_name ?? "",
+          age: d.age ?? 0,
+          gender: d.gender ?? "",
+          industry: d.industry ?? "",
+          industry_detail: d.industry_detail ?? null,
+          industry_location: d.industry_location ?? null,
+          marginalized_type: d.marginalized_type ?? null,
+          purpose: d.purpose ?? "",
+          purpose_detail: d.purpose_detail ?? null,
+          visit_date: format(ts, "yyyy-MM-dd"),
+          visit_time: format(ts, "HH:mm:ss"),
+          created_at: ts.toISOString(),
+        };
+      });
+
+      return rows;
     },
   });
 }

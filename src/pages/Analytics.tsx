@@ -24,7 +24,7 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                         <XAxis type="number" fontSize={12} tickLine={false} allowDecimals={false} />
                         <YAxis dataKey={nameKey} type="category" width={100} fontSize={12} tickLine={false} tick={{ width: 100 }} />
-                        <Tooltip cursor={{ fill: "var(--muted)" }} />
+                        <Tooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} />
                         <Bar dataKey={valueKey} name="Visitors" radius={[0, 4, 4, 0]}>
                             {data.map((_, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -38,7 +38,7 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                        <XAxis dataKey={nameKey} fontSize={11} tickLine={false} />
+                        <XAxis dataKey={nameKey} fontSize={11} tickLine={false} interval={0} />
                         <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                         <Tooltip />
                         <Bar dataKey={valueKey} fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
@@ -53,10 +53,10 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                    <XAxis dataKey={nameKey} fontSize={11} tickLine={false} />
+                    <XAxis dataKey={nameKey} fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} interval={0} />
                     <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                     <Tooltip />
-                    <Line type="monotone" dataKey={valueKey} name="Visitors" stroke="hsl(215, 75%, 45%)" strokeWidth={2} />
+                    <Line type="monotone" dataKey={valueKey} name="Visitors" stroke="hsl(215, 75%, 45%)" strokeWidth={2} dot={{ r: 5, fill: "white", strokeWidth: 2 }} activeDot={{ r: 7, strokeWidth: 2 }} />
                 </LineChart>
             </ResponsiveContainer>
         );
@@ -93,14 +93,14 @@ const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line") => {
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="month" fontSize={11} tickLine={false} />
+                    <XAxis dataKey="month" fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} />
                     <YAxis fontSize={11} tickLine={false} />
                     <Tooltip />
                     <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                    <Line type="monotone" dataKey="training" name="Training" stroke={COLORS[0]} strokeWidth={2} />
-                    <Line type="monotone" dataKey="coworking" name="Co-working" stroke={COLORS[1]} strokeWidth={2} />
-                    <Line type="monotone" dataKey="conference_room" name="Conference Room" stroke={COLORS[2]} strokeWidth={2} />
-                    <Line type="monotone" dataKey="others" name="Others" stroke={COLORS[3]} strokeWidth={2} />
+                    <Line type="monotone" dataKey="training" name="Training" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="coworking" name="Co-working" stroke={COLORS[1]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="conference_room" name="Conference Room" stroke={COLORS[2]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="others" name="Others" stroke={COLORS[3]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
             </ResponsiveContainer>
         );
@@ -112,12 +112,12 @@ const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line") => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" fontSize={11} tickLine={false} />
                 <YAxis fontSize={11} tickLine={false} />
-                <Tooltip />
+                <Tooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} />
                 <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                <Bar dataKey="training" stackId="a" name="Training" fill={COLORS[0]} />
-                <Bar dataKey="coworking" stackId="a" name="Co-working" fill={COLORS[1]} />
-                <Bar dataKey="conference_room" stackId="a" name="Conference Room" fill={COLORS[2]} />
-                <Bar dataKey="others" stackId="a" name="Others" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="training" name="Training" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="coworking" name="Co-working" fill={COLORS[1]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="conference_room" name="Conference Room" fill={COLORS[2]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="others" name="Others" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
             </BarChart>
         </ResponsiveContainer>
     );

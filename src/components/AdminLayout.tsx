@@ -1,7 +1,8 @@
 import dtcLogo from "@/assets/DTClogo.png";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { FileText, LayoutDashboard, LineChart, LogOut, Moon, Sun, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -21,32 +22,18 @@ const AdminLayout = () => {
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (localStorage.getItem("hardcodedAdmin") === "true") {
-        setLoading(false);
-        return;
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
         navigate("/admin/login");
       }
       setLoading(false);
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session && localStorage.getItem("hardcodedAdmin") !== "true") {
-        navigate("/admin/login");
-      }
     });
 
-    checkAuth();
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, [navigate]);
 
   const handleLogout = async () => {
-    localStorage.removeItem("hardcodedAdmin");
-    await supabase.auth.signOut();
+    await signOut(auth);
     navigate("/admin/login");
   };
 

@@ -5,14 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { db } from "@/lib/firebase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { ArrowLeft, CheckCircle2, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 type Industry = Database["public"]["Enums"]["visitor_industry"];
@@ -73,6 +73,14 @@ const industryLocationPlaceholders: Record<Industry, string> = {
 const VisitorForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  // Force light mode on visitor form
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("dark");
+    root.classList.add("light");
+  }, []);
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<VisitorFormData>({
     resolver: zodResolver(visitorSchema),
@@ -84,32 +92,15 @@ const VisitorForm = () => {
   const onSubmit = async (data: VisitorFormData) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("visitors").insert({
-        full_name: data.full_name,
-        age: data.age,
-        gender: data.gender,
-        industry: data.industry,
-        industry_detail: data.industry_detail || null,
-        industry_location: data.industry_location || null,
-        marginalized_type: data.marginalized_type || null,
-        purpose: data.purpose,
-        purpose_detail: data.purpose_detail || null,
+      await addDoc(collection(db, "visitors"), {
+        ...data,
+        timestamp: serverTimestamp(),
       });
-
-      if (error) {
-        if (error.code === "23505") {
-          toast.error("You have already submitted a form today.");
-        } else {
-          toast.error("Submission failed. Please try again.");
-          console.error(error);
-        }
-        return;
-      }
-
       setSubmitted(true);
       reset();
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (error) {
+      console.error("Error submitting form data: ", error);
+      alert("There was an error submitting your registration. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -131,10 +122,11 @@ const VisitorForm = () => {
         <Card className="w-full max-w-md text-center animate-fade-in shadow-2xl z-10 bg-card/95 border-border/50 backdrop-blur-md rounded-3xl">
           <CardContent className="pt-10 pb-10">
             <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500 mb-4" />
-            <h2 className="text-2xl font-heading font-bold text-foreground mb-2">Thank You!</h2>
-            <p className="text-muted-foreground mb-6">Your visit has been recorded successfully.</p>
-            <Button onClick={() => setSubmitted(false)} className="w-full shadow-md bg-emerald-600 hover:bg-emerald-700 text-white h-12 rounded-full transition-all duration-300 hover:-translate-y-1">
-              Submit Another
+            <h2 className="text-2xl font-heading font-bold text-foreground mb-2">Daghang Salamat!</h2>
+            <p className="text-muted-foreground mb-6">Dako kaayo namong gipasalamatan ang inyong kooperasyon. Ang inyong impormasyon malampusong naitala alang sa monitoring ug record-keeping nga katuyoan. .</p>
+            <Button onClick={() => navigate("/")} className="w-full shadow-md bg-emerald-600 hover:bg-emerald-700 text-white h-12 rounded-full transition-all duration-300 hover:-translate-y-1">
+              <LogOut className="w-4 h-4 mr-2" />
+              Exit
             </Button>
           </CardContent>
         </Card>

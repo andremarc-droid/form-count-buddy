@@ -37,8 +37,9 @@ const Reports = () => {
       v.visit_date,
     ]);
 
-    const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const csv = [headers.map((h) => `"${h}"`).join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
+    const bom = "\uFEFF";
+    const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -162,53 +163,298 @@ function generatePDFContent(
   stats: ReturnType<typeof computeStats>,
   reportType: string
 ) {
+  const reportDate = format(new Date(), "MMMM dd, yyyy");
+  const reportTime = format(new Date(), "hh:mm a");
+  const reportLabel = reportType === "daily" ? "Daily" : reportType === "monthly" ? "Monthly" : "Industry";
+
   return `
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Foot Traffic Report - ${format(new Date(), "MMMM dd, yyyy")}</title>
+      <title>Foot Traffic Report - ${reportDate}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; color: #333; }
-        h1 { font-size: 24px; margin-bottom: 4px; }
-        h2 { font-size: 18px; margin-top: 24px; color: #555; }
-        .subtitle { color: #888; margin-bottom: 24px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
-        th { background: #f5f5f5; font-weight: 600; }
-        .stat { display: inline-block; margin-right: 32px; margin-bottom: 16px; }
-        .stat-value { font-size: 28px; font-weight: bold; }
-        .stat-label { color: #888; font-size: 13px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          color: #1e293b;
+          background: #fff;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .page { padding: 0 48px 48px 48px; }
+
+        /* Header */
+        .header {
+          background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+          color: #fff;
+          padding: 32px 48px;
+          margin: 0 -48px 32px -48px;
+          position: relative;
+        }
+        .header::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+        }
+        .header h1 {
+          font-size: 26px;
+          font-weight: 700;
+          letter-spacing: -0.5px;
+          margin-bottom: 4px;
+        }
+        .header-meta {
+          display: flex;
+          gap: 24px;
+          margin-top: 8px;
+          font-size: 12px;
+          color: #94a3b8;
+        }
+        .header-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* Stats */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          margin-bottom: 32px;
+        }
+        .stat-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 20px;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+        }
+        .stat-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+        }
+        .stat-card:nth-child(1)::before { background: #10b981; }
+        .stat-card:nth-child(2)::before { background: #3b82f6; }
+        .stat-card:nth-child(3)::before { background: #8b5cf6; }
+        .stat-card:nth-child(4)::before { background: #f59e0b; }
+        .stat-value {
+          font-size: 32px;
+          font-weight: 700;
+          color: #0f172a;
+          line-height: 1;
+          margin-bottom: 4px;
+        }
+        .stat-label {
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: #64748b;
+        }
+
+        /* Section */
+        .section { margin-bottom: 28px; }
+        .section-title {
+          font-size: 15px;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .section-title::before {
+          content: '';
+          width: 4px;
+          height: 18px;
+          border-radius: 2px;
+          background: #3b82f6;
+          display: inline-block;
+        }
+
+        /* Tables */
+        table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+          font-size: 12px;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        th {
+          background: #f1f5f9;
+          font-weight: 600;
+          color: #475569;
+          padding: 10px 14px;
+          text-align: left;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+          border-bottom: 2px solid #e2e8f0;
+        }
+        td {
+          padding: 9px 14px;
+          color: #334155;
+          border-bottom: 1px solid #f1f5f9;
+        }
+        tr:nth-child(even) td { background: #f8fafc; }
+        tr:last-child td { border-bottom: none; }
+
+        .dist-tables {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          margin-bottom: 28px;
+        }
+
+        /* Percentage bar */
+        .pct-cell { display: flex; align-items: center; gap: 8px; }
+        .pct-bar-bg {
+          flex: 1;
+          height: 6px;
+          background: #e2e8f0;
+          border-radius: 3px;
+          overflow: hidden;
+          max-width: 80px;
+        }
+        .pct-bar {
+          height: 100%;
+          border-radius: 3px;
+          background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+
+        /* Footer */
+        .footer {
+          margin-top: 40px;
+          padding-top: 16px;
+          border-top: 1px solid #e2e8f0;
+          display: flex;
+          justify-content: space-between;
+          font-size: 10px;
+          color: #94a3b8;
+        }
+
+        @media print {
+          body { padding: 0; }
+          .page { padding: 0 32px 32px 32px; }
+          .header { margin: 0 -32px 24px -32px; padding: 24px 32px; }
+          .stat-card { break-inside: avoid; }
+          table { break-inside: auto; }
+          tr { break-inside: avoid; }
+        }
       </style>
     </head>
     <body>
-      <h1>Foot Traffic Monitoring Report</h1>
-      <p class="subtitle">Generated on ${format(new Date(), "MMMM dd, yyyy 'at' hh:mm a")}</p>
-      
-      <div>
-        <div class="stat"><div class="stat-value">${stats.daily}</div><div class="stat-label">Today</div></div>
-        <div class="stat"><div class="stat-value">${stats.weekly}</div><div class="stat-label">This Week</div></div>
-        <div class="stat"><div class="stat-value">${stats.monthly}</div><div class="stat-label">This Month</div></div>
-        <div class="stat"><div class="stat-value">${stats.total}</div><div class="stat-label">Total</div></div>
+      <div class="page">
+        <div class="header">
+          <h1>Foot Traffic Monitoring Report</h1>
+          <div class="header-meta">
+            <span>📅 ${reportDate}</span>
+            <span>🕐 ${reportTime}</span>
+            <span>📊 ${reportLabel} Report</span>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">${stats.daily}</div>
+            <div class="stat-label">Today</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${stats.weekly}</div>
+            <div class="stat-label">This Week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${stats.monthly}</div>
+            <div class="stat-label">This Month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">${stats.total}</div>
+            <div class="stat-label">Total Visitors</div>
+          </div>
+        </div>
+
+        <div class="dist-tables">
+          <div class="section">
+            <div class="section-title">Industry Distribution</div>
+            <table>
+              <thead>
+                <tr><th>Industry</th><th>Count</th><th>Percentage</th></tr>
+              </thead>
+              <tbody>
+                ${stats.industryData.map((d) => `
+                  <tr>
+                    <td>${d.name}</td>
+                    <td style="font-weight:600">${d.value}</td>
+                    <td><div class="pct-cell"><span>${d.percentage}%</span><div class="pct-bar-bg"><div class="pct-bar" style="width:${d.percentage}%"></div></div></div></td>
+                  </tr>
+                `).join("")}
+                ${stats.industryData.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#94a3b8">No data available</td></tr>' : ''}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Purpose Distribution</div>
+            <table>
+              <thead>
+                <tr><th>Purpose</th><th>Count</th><th>Percentage</th></tr>
+              </thead>
+              <tbody>
+                ${stats.purposeData.map((d) => `
+                  <tr>
+                    <td>${d.name}</td>
+                    <td style="font-weight:600">${d.value}</td>
+                    <td><div class="pct-cell"><span>${d.percentage}%</span><div class="pct-bar-bg"><div class="pct-bar" style="width:${d.percentage}%"></div></div></div></td>
+                  </tr>
+                `).join("")}
+                ${stats.purposeData.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#94a3b8">No data available</td></tr>' : ''}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        ${reportType !== "industry" ? `
+        <div class="section">
+          <div class="section-title">Visitor Log</div>
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Age</th><th>Gender</th><th>Industry</th><th>Purpose</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+              ${visitors.slice(0, 100).map((v) => `
+                <tr>
+                  <td style="font-weight:500">${v.full_name}</td>
+                  <td>${v.age}</td>
+                  <td>${v.gender}</td>
+                  <td>${formatLabel(v.industry)}</td>
+                  <td>${formatLabel(v.purpose)}</td>
+                  <td>${v.visit_date}</td>
+                </tr>
+              `).join("")}
+              ${visitors.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:#94a3b8">No visitors recorded</td></tr>' : ''}
+            </tbody>
+          </table>
+          ${visitors.length > 100 ? '<p style="margin-top:8px;font-size:11px;color:#94a3b8;text-align:center">Showing first 100 of ' + visitors.length + ' visitors</p>' : ''}
+        </div>` : ""}
+
+        <div class="footer">
+          <span>Digital Transformation Centers — Foot Traffic Monitor</span>
+          <span>Generated on ${reportDate} at ${reportTime}</span>
+        </div>
       </div>
-
-      <h2>Industry Distribution</h2>
-      <table>
-        <tr><th>Industry</th><th>Count</th><th>Percentage</th></tr>
-        ${stats.industryData.map((d) => `<tr><td>${d.name}</td><td>${d.value}</td><td>${d.percentage}%</td></tr>`).join("")}
-      </table>
-
-      <h2>Purpose Distribution</h2>
-      <table>
-        <tr><th>Purpose</th><th>Count</th><th>Percentage</th></tr>
-        ${stats.purposeData.map((d) => `<tr><td>${d.name}</td><td>${d.value}</td><td>${d.percentage}%</td></tr>`).join("")}
-      </table>
-
-      ${reportType !== "industry" ? `
-      <h2>Visitor Log</h2>
-      <table>
-        <tr><th>Name</th><th>Age</th><th>Gender</th><th>Industry</th><th>Purpose</th><th>Date</th></tr>
-        ${visitors.slice(0, 100).map((v) => `<tr><td>${v.full_name}</td><td>${v.age}</td><td>${v.gender}</td><td>${formatLabel(v.industry)}</td><td>${formatLabel(v.purpose)}</td><td>${v.visit_date}</td></tr>`).join("")}
-      </table>` : ""}
     </body>
     </html>
   `;

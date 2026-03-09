@@ -2,11 +2,18 @@ import bgImage from "@/assets/DTC.jpg";
 import logoImage from "@/assets/DTClogo.png";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, LogOut, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   const [showThankYou, setShowThankYou] = useState(false);
+
+  // Force light mode on visitor-facing pages
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("dark");
+    root.classList.add("light");
+  }, []);
 
   const handleExit = () => {
     // Attempting to close the window, or redirecting to a blank page as a fallback
@@ -50,7 +57,7 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200 hover:border-rose-300 transition-all duration-300 hover:-translate-y-1"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-600 border-rose-200 hover:border-rose-300 transition-all duration-300 hover:-translate-y-1"
                 onClick={() => setShowThankYou(true)}
               >
                 <XCircle className="h-5 w-5 mr-2 shrink-0" />
@@ -74,7 +81,7 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm hover:bg-muted/50 text-foreground transition-all duration-300 hover:-translate-y-1"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm hover:bg-muted/50 text-foreground hover:text-foreground transition-all duration-300 hover:-translate-y-1"
                 onClick={() => setShowThankYou(false)}
               >
                 <ArrowLeft className="h-5 w-5 mr-2 shrink-0" />

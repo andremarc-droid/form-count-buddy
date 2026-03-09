@@ -26,7 +26,7 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-          <XAxis dataKey="name" fontSize={11} tickLine={false} />
+          <XAxis dataKey="name" fontSize={11} tickLine={false} interval={0} />
           <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
           <Tooltip />
           <Bar dataKey="value" fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
@@ -40,10 +40,10 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-          <XAxis dataKey="name" fontSize={11} tickLine={false} />
+          <XAxis dataKey="name" fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} interval={0} />
           <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke="hsl(215, 75%, 45%)" strokeWidth={2} />
+          <Line type="monotone" dataKey="value" stroke="hsl(215, 75%, 45%)" strokeWidth={2} dot={{ r: 5, fill: "white", strokeWidth: 2 }} activeDot={{ r: 7, strokeWidth: 2 }} />
         </LineChart>
       </ResponsiveContainer>
     );
@@ -187,10 +187,10 @@ const Dashboard = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={stats.dailyTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                    <XAxis dataKey="date" fontSize={11} tickLine={false} />
+                    <XAxis dataKey="date" fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} />
                     <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="count" stroke="hsl(215, 75%, 45%)" strokeWidth={2} />
+                    <Line type="monotone" dataKey="count" stroke="hsl(215, 75%, 45%)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
               )}

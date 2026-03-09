@@ -42,10 +42,15 @@ export function ThemeProvider({
                 : "light"
 
             root.classList.add(systemTheme)
-            return
+        } else {
+            root.classList.add(theme)
         }
 
-        root.classList.add(theme)
+        return () => {
+            // Reset to light mode when ThemeProvider unmounts
+            root.classList.remove("dark")
+            root.classList.add("light")
+        }
     }, [theme])
 
     const value = {
