@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 220 20% 96%;
     --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
@@ -36,14 +36,14 @@
 
     --radius: 0.625rem;
 
-    --sidebar-background: 215 25% 15%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 215 75% 55%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 25%;
+    --sidebar-primary: 225 75% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 22%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 215 20% 25%;
-    --sidebar-ring: 215 75% 55%;
+    --sidebar-accent: 225 60% 93%;
+    --sidebar-accent-foreground: 225 75% 35%;
+    --sidebar-border: 214 20% 94%;
+    --sidebar-ring: 225 75% 35%;
 
     /* Custom tokens */
     --success: 152 60% 40%;

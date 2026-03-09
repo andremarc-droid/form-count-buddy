@@ -1,16 +1,27 @@
-import AdminLayout from "@/components/AdminLayout";
-import { useVisitorData, computeStats, formatLabel } from "@/hooks/useVisitorData";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { VisitorRow } from "@/hooks/useVisitorData";
+import { computeStats, formatLabel, useVisitorData } from "@/hooks/useVisitorData";
+import { format } from "date-fns";
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
-import { format } from "date-fns";
-import type { VisitorRow } from "@/hooks/useVisitorData";
 
 const Reports = () => {
-  const { data: visitors = [], isLoading } = useVisitorData();
+  const { data: allVisitors = [], isLoading } = useVisitorData();
   const [reportType, setReportType] = useState("daily");
+
+  const visitors = allVisitors.filter((v) => {
+    if (reportType === "daily") {
+      return v.visit_date === format(new Date(), "yyyy-MM-dd");
+    }
+    if (reportType === "monthly") {
+      return v.visit_date.startsWith(format(new Date(), "yyyy-MM"));
+    }
+    return true; // "industry" or other shows all
+  });
+
   const stats = computeStats(visitors);
 
   const exportCSV = () => {
@@ -47,7 +58,7 @@ const Reports = () => {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="page-header flex items-start justify-between">
         <div>
           <h1 className="page-title">Reports</h1>
@@ -142,7 +153,7 @@ const Reports = () => {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

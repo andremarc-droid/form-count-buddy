@@ -1,7 +1,9 @@
-import AdminLayout from "@/components/AdminLayout";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { computeStats, useVisitorData } from "@/hooks/useVisitorData";
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const COLORS = [
     "hsl(215, 75%, 45%)",
@@ -11,12 +13,127 @@ const COLORS = [
     "hsl(0, 72%, 51%)",
 ];
 
+const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey: string, valueKey: string, isVerticalBar: boolean = false) => {
+    if (data.length === 0) return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
+
+    if (type === "bar") {
+        if (isVerticalBar) {
+            return (
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                        <XAxis type="number" fontSize={12} tickLine={false} allowDecimals={false} />
+                        <YAxis dataKey={nameKey} type="category" width={100} fontSize={12} tickLine={false} tick={{ width: 100 }} />
+                        <Tooltip cursor={{ fill: "var(--muted)" }} />
+                        <Bar dataKey={valueKey} name="Visitors" radius={[0, 4, 4, 0]}>
+                            {data.map((_, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            );
+        } else {
+            return (
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+                        <XAxis dataKey={nameKey} fontSize={11} tickLine={false} />
+                        <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
+                        <Tooltip />
+                        <Bar dataKey={valueKey} fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            );
+        }
+    }
+
+    if (type === "line") {
+        return (
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+                    <XAxis dataKey={nameKey} fontSize={11} tickLine={false} />
+                    <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey={valueKey} name="Visitors" stroke="hsl(215, 75%, 45%)" strokeWidth={2} />
+                </LineChart>
+            </ResponsiveContainer>
+        );
+    }
+
+    return (
+        <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+                <Pie
+                    data={data}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={4}
+                    dataKey={valueKey}
+                    label={({ name, percent }) => percent ? `${name} (${(percent * 100).toFixed(0)}%)` : `${name}`}
+                >
+                    {data.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                </Pie>
+                <Tooltip />
+            </PieChart>
+        </ResponsiveContainer>
+    );
+};
+
+const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line") => {
+    if (data.length === 0) return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
+
+    if (type === "line") {
+        return (
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data} margin={{ top: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="month" fontSize={11} tickLine={false} />
+                    <YAxis fontSize={11} tickLine={false} />
+                    <Tooltip />
+                    <Legend wrapperStyle={{ paddingTop: "20px" }} />
+                    <Line type="monotone" dataKey="training" name="Training" stroke={COLORS[0]} strokeWidth={2} />
+                    <Line type="monotone" dataKey="coworking" name="Co-working" stroke={COLORS[1]} strokeWidth={2} />
+                    <Line type="monotone" dataKey="conference_room" name="Conference Room" stroke={COLORS[2]} strokeWidth={2} />
+                    <Line type="monotone" dataKey="others" name="Others" stroke={COLORS[3]} strokeWidth={2} />
+                </LineChart>
+            </ResponsiveContainer>
+        );
+    }
+
+    return (
+        <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" fontSize={11} tickLine={false} />
+                <YAxis fontSize={11} tickLine={false} />
+                <Tooltip />
+                <Legend wrapperStyle={{ paddingTop: "20px" }} />
+                <Bar dataKey="training" stackId="a" name="Training" fill={COLORS[0]} />
+                <Bar dataKey="coworking" stackId="a" name="Co-working" fill={COLORS[1]} />
+                <Bar dataKey="conference_room" stackId="a" name="Conference Room" fill={COLORS[2]} />
+                <Bar dataKey="others" stackId="a" name="Others" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
+            </BarChart>
+        </ResponsiveContainer>
+    );
+};
+
 const Analytics = () => {
     const { data: visitors = [], isLoading } = useVisitorData();
     const stats = computeStats(visitors);
 
+    const [chart1Type, setChart1Type] = useState<"pie" | "bar" | "line">("bar");
+    const [chart2Type, setChart2Type] = useState<"pie" | "bar" | "line">("pie");
+    const [chart3Type, setChart3Type] = useState<"bar" | "line">("bar");
+    const [chart4Type, setChart4Type] = useState<"pie" | "bar" | "line">("bar");
+
     return (
-        <AdminLayout>
+        <>
             <div className="page-header mb-8">
                 <h1 className="page-title text-3xl font-heading font-bold text-foreground">Industry Analytics</h1>
                 <p className="page-subtitle text-muted-foreground mt-1">Deep dive into visitor patterns and industry trends</p>
@@ -31,64 +148,50 @@ const Analytics = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 1. Number of visitors per industry */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="font-heading text-lg">Visitors per Industry</CardTitle>
-                                <CardDescription>Absolute number of visitors by sector</CardDescription>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <div>
+                                    <CardTitle className="font-heading text-lg">Visitors per Industry</CardTitle>
+                                    <CardDescription>Absolute number of visitors by sector</CardDescription>
+                                </div>
+                                <Select value={chart1Type} onValueChange={(v: "pie" | "bar" | "line") => setChart1Type(v)}>
+                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                        <SelectValue placeholder="Chart Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pie">Pie Chart</SelectItem>
+                                        <SelectItem value="bar">Bar Graph</SelectItem>
+                                        <SelectItem value="line">Line Graph</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[300px]">
-                                    {stats.industryData.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={stats.industryData} layout="vertical" margin={{ left: 20 }}>
-                                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                                                <XAxis type="number" fontSize={12} tickLine={false} allowDecimals={false} />
-                                                <YAxis dataKey="name" type="category" width={100} fontSize={12} tickLine={false} />
-                                                <Tooltip cursor={{ fill: "var(--muted)" }} />
-                                                <Bar dataKey="value" name="Total Visitors" radius={[0, 4, 4, 0]}>
-                                                    {stats.industryData.map((_, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Bar>
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>
-                                    )}
+                                    {renderStandardChart(stats.industryData, chart1Type, "name", "value", true)}
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* 2. Percentage distribution by industry */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="font-heading text-lg">Industry Distribution</CardTitle>
-                                <CardDescription>Percentage share by sector</CardDescription>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <div>
+                                    <CardTitle className="font-heading text-lg">Industry Distribution</CardTitle>
+                                    <CardDescription>Percentage share by sector</CardDescription>
+                                </div>
+                                <Select value={chart2Type} onValueChange={(v: "pie" | "bar" | "line") => setChart2Type(v)}>
+                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                        <SelectValue placeholder="Chart Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pie">Pie Chart</SelectItem>
+                                        <SelectItem value="bar">Bar Graph</SelectItem>
+                                        <SelectItem value="line">Line Graph</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[300px]">
-                                    {stats.industryData.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={stats.industryData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={100}
-                                                    paddingAngle={4}
-                                                    dataKey="value"
-                                                    label={({ name, percentage }) => `${name} (${percentage}%)`}
-                                                >
-                                                    {stats.industryData.map((_, i) => (
-                                                        <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>
-                                    )}
+                                    {renderStandardChart(stats.industryData, chart2Type, "name", "value", false)}
                                 </div>
                             </CardContent>
                         </Card>
@@ -97,61 +200,56 @@ const Analytics = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 3. Percentage distribution per purpose by month */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="font-heading text-lg">Monthly Purpose Distribution</CardTitle>
-                                <CardDescription>Breakdown of visit purposes over time</CardDescription>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <div>
+                                    <CardTitle className="font-heading text-lg">Monthly Purpose Distribution</CardTitle>
+                                    <CardDescription>Breakdown of visit purposes over time</CardDescription>
+                                </div>
+                                <Select value={chart3Type} onValueChange={(v: "bar" | "line") => setChart3Type(v)}>
+                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                        <SelectValue placeholder="Chart Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="bar">Bar Graph</SelectItem>
+                                        <SelectItem value="line">Line Graph</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[350px]">
-                                    {stats.purposeByMonth.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={stats.purposeByMonth} margin={{ top: 20 }}>
-                                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                <XAxis dataKey="month" fontSize={11} tickLine={false} />
-                                                <YAxis fontSize={11} tickLine={false} />
-                                                <Tooltip />
-                                                <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                                                <Bar dataKey="training" stackId="a" name="Training" fill={COLORS[0]} />
-                                                <Bar dataKey="coworking" stackId="a" name="Co-working" fill={COLORS[1]} />
-                                                <Bar dataKey="conference_room" stackId="a" name="Conference Room" fill={COLORS[2]} />
-                                                <Bar dataKey="others" stackId="a" name="Others" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>
-                                    )}
+                                    {renderMonthlyPurposeChart(stats.purposeByMonth, chart3Type)}
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* 4. Trend analysis per occupation (optional) */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="font-heading text-lg">Top Occupations & Organizations</CardTitle>
-                                <CardDescription>Most frequent visitor backgrounds</CardDescription>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <div>
+                                    <CardTitle className="font-heading text-lg">Top Occupations & Organizations</CardTitle>
+                                    <CardDescription>Most frequent visitor backgrounds</CardDescription>
+                                </div>
+                                <Select value={chart4Type} onValueChange={(v: "pie" | "bar" | "line") => setChart4Type(v)}>
+                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                        <SelectValue placeholder="Chart Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="pie">Pie Chart</SelectItem>
+                                        <SelectItem value="bar">Bar Graph</SelectItem>
+                                        <SelectItem value="line">Line Graph</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[350px]">
-                                    {stats.topOccupations.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={stats.topOccupations} layout="vertical" margin={{ left: 10 }}>
-                                                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                                                <XAxis type="number" fontSize={11} tickLine={false} allowDecimals={false} />
-                                                <YAxis dataKey="name" type="category" width={110} fontSize={11} tickLine={false} tick={{ width: 100 }} />
-                                                <Tooltip />
-                                                <Bar dataKey="count" name="Visitors" fill="hsl(280, 60%, 50%)" radius={[0, 4, 4, 0]} />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>
-                                    )}
+                                    {renderStandardChart(stats.topOccupations, chart4Type, "name", "count", true)}
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
                 </div>
             )}
-        </AdminLayout>
+        </>
     );
 };
 

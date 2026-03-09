@@ -1,4 +1,4 @@
-import AdminLayout from "@/components/AdminLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,7 +6,7 @@ import { computeStats, useVisitorData } from "@/hooks/useVisitorData";
 import { Activity, CalendarDays, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
-import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const COLORS = [
   "hsl(215, 75%, 45%)",
@@ -16,11 +16,71 @@ const COLORS = [
   "hsl(0, 72%, 51%)",
 ];
 
+const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "pie" | "bar" | "line", showLegend?: boolean }) => {
+  if (data.length === 0) {
+    return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
+  }
+
+  if (type === "bar") {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+          <XAxis dataKey="name" fontSize={11} tickLine={false} />
+          <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
+          <Tooltip />
+          <Bar dataKey="value" fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  if (type === "line") {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+          <XAxis dataKey="name" fontSize={11} tickLine={false} />
+          <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
+          <Tooltip />
+          <Line type="monotone" dataKey="value" stroke="hsl(215, 75%, 45%)" strokeWidth={2} />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={100}
+          paddingAngle={4}
+          dataKey="value"
+          label={({ name, percentage }) => `${name} (${percentage}%)`}
+        >
+          {data.map((_, i) => (
+            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+        {showLegend && <Legend />}
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
+
 const Dashboard = () => {
   const { data: visitors = [], isLoading } = useVisitorData();
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [purposeFilter, setPurposeFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [dailyChartType, setDailyChartType] = useState<"bar" | "line">("bar");
+  const [industryChartType, setIndustryChartType] = useState<"pie" | "bar" | "line">("pie");
+  const [purposeChartType, setPurposeChartType] = useState<"pie" | "bar" | "line">("pie");
 
   const filtered = visitors.filter((v) => {
     if (industryFilter !== "all" && v.industry !== industryFilter) return false;
@@ -44,7 +104,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <AdminLayout>
+    <>
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <p className="page-subtitle">Real-time foot traffic overview</p>
@@ -97,36 +157,65 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Industry Pie */}
+        {/* Daily Trend */}
         <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">Visitors by Industry</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="font-heading text-lg">Daily Foot Traffic (Last 30 Days)</CardTitle>
+            <Select value={dailyChartType} onValueChange={(v: "bar" | "line") => setDailyChartType(v)}>
+              <SelectTrigger className="w-[130px] h-8 text-xs">
+                <SelectValue placeholder="Chart Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bar">Bar Graph</SelectItem>
+                <SelectItem value="line">Line Graph</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
-              {stats.industryData.length > 0 ? (
+              {dailyChartType === "bar" ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stats.industryData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={4}
-                      dataKey="value"
-                      label={({ name, percentage }) => `${name} (${percentage}%)`}
-                    >
-                      {stats.industryData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
+                  <BarChart data={stats.dailyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+                    <XAxis dataKey="date" fontSize={11} tickLine={false} />
+                    <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                     <Tooltip />
-                  </PieChart>
+                    <Bar dataKey="count" fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={stats.dailyTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+                    <XAxis dataKey="date" fontSize={11} tickLine={false} />
+                    <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="count" stroke="hsl(215, 75%, 45%)" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Industry Pie */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="font-heading text-lg">Visitors by Industry</CardTitle>
+            <Select value={industryChartType} onValueChange={(v: "pie" | "bar" | "line") => setIndustryChartType(v)}>
+              <SelectTrigger className="w-[130px] h-8 text-xs">
+                <SelectValue placeholder="Chart Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pie">Pie Chart</SelectItem>
+                <SelectItem value="bar">Bar Graph</SelectItem>
+                <SelectItem value="line">Line Graph</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <DynamicChart data={stats.industryData} type={industryChartType} />
             </div>
           </CardContent>
         </Card>
@@ -134,39 +223,26 @@ const Dashboard = () => {
 
       {/* Purpose Chart */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="font-heading text-lg">Visitors by Purpose</CardTitle>
+          <Select value={purposeChartType} onValueChange={(v: "pie" | "bar" | "line") => setPurposeChartType(v)}>
+            <SelectTrigger className="w-[130px] h-8 text-xs">
+              <SelectValue placeholder="Chart Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pie">Pie Chart</SelectItem>
+              <SelectItem value="bar">Bar Graph</SelectItem>
+              <SelectItem value="line">Line Graph</SelectItem>
+            </SelectContent>
+          </Select>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
-            {stats.purposeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={stats.purposeData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={4}
-                    dataKey="value"
-                    label={({ name, percentage }) => `${name} (${percentage}%)`}
-                  >
-                    {stats.purposeData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>
-            )}
+            <DynamicChart data={stats.purposeData} type={purposeChartType} showLegend />
           </div>
         </CardContent>
       </Card>
-    </AdminLayout>
+    </>
   );
 };
 

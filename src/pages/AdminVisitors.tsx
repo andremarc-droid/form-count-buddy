@@ -1,7 +1,7 @@
-import AdminLayout from "@/components/AdminLayout";
-import { useVisitorData, formatLabel } from "@/hooks/useVisitorData";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatLabel, useVisitorData } from "@/hooks/useVisitorData";
 import { useState } from "react";
 
 const AdminVisitors = () => {
@@ -15,7 +15,7 @@ const AdminVisitors = () => {
   );
 
   return (
-    <AdminLayout>
+    <>
       <div className="page-header">
         <h1 className="page-title">Visitors</h1>
         <p className="page-subtitle">View all visitor submissions</p>
@@ -68,7 +68,7 @@ const AdminVisitors = () => {
           </TableBody>
         </Table>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 
