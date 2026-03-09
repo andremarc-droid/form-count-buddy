@@ -1,10 +1,10 @@
+import logo from "@/assets/DTClogo.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -40,8 +40,8 @@ const AdminLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 mx-auto mb-4">
-            <Shield className="h-7 w-7 text-primary" />
+          <div className="flex justify-center mx-auto mb-6">
+            <img src={logo} alt="DTC Logo" className="h-16 w-auto object-contain" />
           </div>
           <CardTitle className="font-heading text-2xl">Admin Login</CardTitle>
           <CardDescription>Sign in to access the dashboard</CardDescription>
