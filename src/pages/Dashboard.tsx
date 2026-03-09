@@ -8,12 +8,18 @@ import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+// Helper to retrieve CSS variable values for Recharts
+const getCSSVariableValue = (variableName: string) => {
+  if (typeof window === "undefined") return "";
+  return `hsl(${getComputedStyle(document.documentElement).getPropertyValue(variableName).trim()})`;
+};
+
 const COLORS = [
-  "hsl(215, 75%, 45%)",
-  "hsl(165, 55%, 42%)",
-  "hsl(38, 92%, 50%)",
-  "hsl(280, 60%, 50%)",
-  "hsl(0, 72%, 51%)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
 const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "pie" | "bar" | "line", showLegend?: boolean }) => {
@@ -29,7 +35,7 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
           <XAxis dataKey="name" fontSize={11} tickLine={false} interval={0} />
           <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
           <Tooltip />
-          <Bar dataKey="value" fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill={getCSSVariableValue("--primary")} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     );
@@ -43,7 +49,7 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
           <XAxis dataKey="name" fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} interval={0} />
           <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
           <Tooltip />
-          <Line type="monotone" dataKey="value" stroke="hsl(215, 75%, 45%)" strokeWidth={2} dot={{ r: 5, fill: "white", strokeWidth: 2 }} activeDot={{ r: 7, strokeWidth: 2 }} />
+          <Line type="monotone" dataKey="value" stroke={getCSSVariableValue("--primary")} strokeWidth={2} dot={{ r: 5, fill: "white", strokeWidth: 2 }} activeDot={{ r: 7, strokeWidth: 2 }} />
         </LineChart>
       </ResponsiveContainer>
     );
@@ -63,7 +69,7 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
           label={({ name, percentage }) => `${name} (${percentage}%)`}
         >
           {data.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            <Cell key={i} fill={`hsl(${COLORS[i % COLORS.length]})`} />
           ))}
         </Pie>
         <Tooltip />
@@ -143,7 +149,7 @@ const Dashboard = () => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((s) => (
-          <div key={s.label} className="stat-card animate-fade-in">
+          <div key={s.label} className="stat-card animate-fade-in shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-l-4" style={{ borderLeftColor: `hsl(var(--${s.color.split("-")[1]}))` }}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">{s.label}</span>
               <s.icon className={`h-5 w-5 ${s.color}`} />
@@ -158,9 +164,9 @@ const Dashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Daily Trend */}
-        <Card>
+        <Card className="shadow-lg border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-heading text-lg">Daily Foot Traffic (Last 30 Days)</CardTitle>
+            <CardTitle className="font-heading text-lg">Daily Foot Traffic</CardTitle>
             <Select value={dailyChartType} onValueChange={(v: "bar" | "line") => setDailyChartType(v)}>
               <SelectTrigger className="w-[130px] h-8 text-xs">
                 <SelectValue placeholder="Chart Type" />
@@ -180,7 +186,7 @@ const Dashboard = () => {
                     <XAxis dataKey="date" fontSize={11} tickLine={false} />
                     <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                     <Tooltip />
-                    <Bar dataKey="count" fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" fill={getCSSVariableValue("--primary")} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -190,7 +196,7 @@ const Dashboard = () => {
                     <XAxis dataKey="date" fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} />
                     <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="count" stroke="hsl(215, 75%, 45%)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="count" stroke={getCSSVariableValue("--primary")} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -199,7 +205,7 @@ const Dashboard = () => {
         </Card>
 
         {/* Industry Pie */}
-        <Card>
+        <Card className="shadow-lg border-border/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="font-heading text-lg">Visitors by Industry</CardTitle>
             <Select value={industryChartType} onValueChange={(v: "pie" | "bar" | "line") => setIndustryChartType(v)}>
@@ -222,7 +228,7 @@ const Dashboard = () => {
       </div>
 
       {/* Purpose Chart */}
-      <Card>
+      <Card className="shadow-lg border-border/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="font-heading text-lg">Visitors by Purpose</CardTitle>
           <Select value={purposeChartType} onValueChange={(v: "pie" | "bar" | "line") => setPurposeChartType(v)}>

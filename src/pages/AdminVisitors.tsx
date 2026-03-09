@@ -140,7 +140,7 @@ const AdminVisitors = () => {
               <TableHead>Gender</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Detail</TableHead>
-              <TableHead>Purpose</TableHead>
+              <TableHead>Facility</TableHead>
               <TableHead>Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>

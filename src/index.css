@@ -6,91 +6,103 @@
 
 @layer base {
   :root {
-    --background: 220 20% 96%;
-    --foreground: 215 25% 15%;
+    --background: 210 20% 98%;
+    --foreground: 222.2 47.4% 11.2%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 222.2 47.4% 11.2%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
-    --primary: 215 75% 45%;
-    --primary-foreground: 0 0% 100%;
+    /* DTC Logo Blue */
+    --primary: 219 80% 40%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 30% 94%;
-    --secondary-foreground: 215 25% 25%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 165 55% 42%;
-    --accent-foreground: 0 0% 100%;
+    /* Soft Blue Action */
+    --accent: 214 32% 91%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    /* DTC Logo Red */
+    --destructive: 357 74% 50%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 215 75% 45%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 219 80% 40%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 25% 25%;
-    --sidebar-primary: 225 75% 35%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 60% 93%;
-    --sidebar-accent-foreground: 225 75% 35%;
-    --sidebar-border: 214 20% 94%;
-    --sidebar-ring: 225 75% 35%;
+    --sidebar-foreground: 222.2 47.4% 11.2%;
+    --sidebar-primary: 219 80% 40%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 219 80% 40%;
 
     /* Custom tokens */
     --success: 152 60% 40%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --info: 205 80% 50%;
-    --info-foreground: 0 0% 100%;
+    --success-foreground: 210 40% 98%;
+    /* DTC Logo Yellow */
+    --warning: 43 100% 47%;
+    --warning-foreground: 222.2 47.4% 11.2%;
+    --info: 219 80% 50%;
+    --info-foreground: 210 40% 98%;
 
-    --chart-1: 215 75% 45%;
-    --chart-2: 165 55% 42%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 280 60% 50%;
-    --chart-5: 0 72% 51%;
+    /* Cohesive Chart Colors */
+    --chart-1: 219 80% 45%;
+    /* Logo Blue */
+    --chart-2: 357 74% 50%;
+    /* Logo Red */
+    --chart-3: 43 100% 47%;
+    /* Logo Yellow */
+    --chart-4: 152 60% 40%;
+    /* Green */
+    --chart-5: 270 50% 50%;
+    /* Violet */
 
     --font-heading: 'Space Grotesk', sans-serif;
     --font-body: 'DM Sans', sans-serif;
   }
 
   .dark {
-    --background: 215 25% 10%;
-    --foreground: 210 20% 95%;
-    --card: 215 25% 13%;
-    --card-foreground: 210 20% 95%;
-    --popover: 215 25% 13%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 215 75% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 215 20% 20%;
-    --secondary-foreground: 210 20% 90%;
-    --muted: 215 20% 18%;
-    --muted-foreground: 215 15% 55%;
-    --accent: 165 55% 42%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 90% 65%;
+    /* Lighter Blue for Dark Mode */
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 357 74% 60%;
+    /* Lighter Red */
     --destructive-foreground: 210 40% 98%;
-    --border: 215 20% 22%;
-    --input: 215 20% 22%;
-    --ring: 215 75% 55%;
-    --sidebar-background: 215 25% 8%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 215 75% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 15%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 215 20% 15%;
-    --sidebar-ring: 215 75% 55%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224 76% 48%;
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 90% 65%;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 224 76% 48%;
   }
 }
 

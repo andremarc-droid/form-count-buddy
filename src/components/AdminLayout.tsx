@@ -48,13 +48,15 @@ const AdminLayout = () => {
   return (
     <div className="h-screen flex bg-background overflow-hidden relative">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 h-full bg-sidebar border-r border-sidebar-border flex-col">
+      <aside className="hidden md:flex w-64 h-full bg-slate-800 border-r border-slate-700 flex-col shadow-2xl z-10 transition-all duration-300">
         <div className="px-2 py-2 border-b border-sidebar-border">
-          <div className="flex flex-col items-center text-center">
-            <img src={logo} alt="DTC Logo" className="w-56 h-auto object-contain" />
-            <div className="-mt-2">
-              <h2 className="font-heading font-bold text-sidebar-foreground text-xl">Foot Traffic</h2>
-              <p className="text-[10px] text-sidebar-foreground/60 leading-tight">Monitoring System</p>
+          <div className="flex flex-col items-center justify-center w-full py-4">
+            <div className="flex items-center justify-center mb-3">
+              <img src={logo} alt="DTC Logo" className="w-52 h-auto object-contain brightness-[1.3] saturate-150 contrast-125" />
+            </div>
+            <div className="text-center">
+              <h2 className="font-heading font-bold text-slate-100 text-xl tracking-tight">Foot Traffic</h2>
+              <p className="text-[10px] text-slate-400 font-medium leading-tight uppercase tracking-wider">Monitoring System</p>
             </div>
           </div>
         </div>
@@ -65,49 +67,49 @@ const AdminLayout = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                "relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-300",
                 location.pathname === item.path
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  ? "bg-primary text-white shadow-md shadow-primary/30 translate-x-1"
+                  : "text-slate-300 hover:bg-slate-700 hover:text-slate-50 hover:translate-x-1"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className={cn("h-5 w-5", location.pathname === item.path ? "text-white" : "text-slate-300")} />
               {item.label}
               {location.pathname === item.path && (
-                <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-sidebar-primary" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-md bg-white opacity-80" />
               )}
             </Link>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-sidebar-border space-y-2">
+        <div className="p-4 border-t border-slate-700 space-y-2 bg-slate-800/50">
           <Button
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            className="w-full justify-start text-slate-300 hover:text-slate-50 hover:bg-slate-700 rounded-xl transition-all"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             {theme === "dark" ? (
-              <Sun className="h-4 w-4 mr-2" />
+              <Sun className="h-5 w-5 mr-3" />
             ) : (
-              <Moon className="h-4 w-4 mr-2" />
+              <Moon className="h-5 w-5 mr-3" />
             )}
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            <span className="font-medium">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
           </Button>
           <Button
             variant="ghost"
-            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+            className="w-full justify-start text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all"
             onClick={handleLogout}
           >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
+            <LogOut className="h-5 w-5 mr-3" />
+            <span className="font-medium">Sign Out</span>
           </Button>
         </div>
-      </aside>
+      </aside >
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      < main className="flex-1 flex flex-col h-screen overflow-hidden" >
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-3 border-b">
+        < header className="md:hidden flex items-center justify-between p-3 border-b" >
           <div className="flex items-center gap-1.5">
             <img src={logo} alt="DTC Logo" className="h-10 w-auto object-contain" />
             <div>
@@ -125,7 +127,7 @@ const AdminLayout = () => {
               <span className="sr-only">Sign out</span>
             </Button>
           </div>
-        </header>
+        </header >
 
         <div className="flex-1 overflow-auto p-4 pb-20 md:p-8 md:pb-8">
           <Outlet />
@@ -152,8 +154,8 @@ const AdminLayout = () => {
             )
           })}
         </nav>
-      </main>
-    </div>
+      </main >
+    </div >
   );
 };
 

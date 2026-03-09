@@ -1,6 +1,6 @@
 import { db } from "@/lib/firebase";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
+import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
 import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, updateDoc } from "firebase/firestore";
 
 export type VisitorRow = {
@@ -147,10 +147,22 @@ export function computeStats(data: VisitorRow[]) {
     percentage: data.length ? Math.round((value / data.length) * 100) : 0,
   }));
 
-  // Daily trend (last 30 days)
+  // Daily trend (15 days starting from the very first entry)
   const dailyTrend: { date: string; count: number }[] = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = format(subDays(new Date(), i), "yyyy-MM-dd");
+
+  // Find the earliest date in the data
+  let startDate = new Date();
+  if (data.length > 0) {
+    const dates = data.map(v => parseISO(v.visit_date).getTime());
+    startDate = new Date(Math.min(...dates));
+  } else {
+    // If no data, default to today minus 14 (showing the last 15 days)
+    startDate = subDays(new Date(), 14);
+  }
+
+  // Generate 15 days starting from that first entry
+  for (let i = 0; i < 15; i++) {
+    const d = format(addDays(startDate, i), "yyyy-MM-dd");
     dailyTrend.push({
       date: format(parseISO(d), "MMM dd"),
       count: data.filter((v) => v.visit_date === d).length,

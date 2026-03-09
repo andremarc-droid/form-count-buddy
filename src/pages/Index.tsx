@@ -48,16 +48,16 @@ const Index = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center w-full">
-              <Button asChild size="lg" className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all duration-300 hover:-translate-y-1">
+              <Button asChild size="lg" className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <Link to="/visitor-form">
                   <CheckCircle className="h-5 w-5 mr-2 shrink-0" />
                   Mutugot Ko
                 </Link>
               </Button>
               <Button
-                variant="outline"
+                variant="destructive"
                 size="lg"
-                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-600 border-rose-200 hover:border-rose-300 transition-all duration-300 hover:-translate-y-1"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-sm transition-all duration-300 hover:-translate-y-1 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border-transparent"
                 onClick={() => setShowThankYou(true)}
               >
                 <XCircle className="h-5 w-5 mr-2 shrink-0" />
@@ -90,7 +90,7 @@ const Index = () => {
               <Button
                 variant="destructive"
                 size="lg"
-                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-lg bg-rose-600 hover:bg-rose-700 text-white transition-all duration-300 hover:-translate-y-1"
+                className="w-full sm:flex-1 text-sm sm:text-base h-12 sm:h-14 px-4 sm:px-8 rounded-full shadow-lg transition-all duration-300 hover:-translate-y-1"
                 onClick={handleExit}
               >
                 <LogOut className="h-5 w-5 mr-2 shrink-0" />

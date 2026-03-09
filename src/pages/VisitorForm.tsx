@@ -113,7 +113,7 @@ const VisitorForm = () => {
         style={{ backgroundImage: `url(${bgImage})` }}
       >
         <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-0"></div>
-        <Button asChild variant="outline" size="sm" className="absolute top-6 left-6 shadow-sm z-10">
+        <Button asChild variant="outline" size="sm" className="absolute top-6 left-6 shadow-sm z-50">
           <Link to="/">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -121,10 +121,10 @@ const VisitorForm = () => {
         </Button>
         <Card className="w-full max-w-md text-center animate-fade-in shadow-2xl z-10 bg-card/95 border-border/50 backdrop-blur-md rounded-3xl">
           <CardContent className="pt-10 pb-10">
-            <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-500 mb-4" />
+            <CheckCircle2 className="mx-auto h-16 w-16 text-primary mb-4" />
             <h2 className="text-2xl font-heading font-bold text-foreground mb-2">Daghang Salamat!</h2>
             <p className="text-muted-foreground mb-6">Dako kaayo namong gipasalamatan ang inyong kooperasyon. Ang inyong impormasyon malampusong naitala alang sa monitoring ug record-keeping nga katuyoan. .</p>
-            <Button onClick={() => navigate("/")} className="w-full shadow-md bg-emerald-600 hover:bg-emerald-700 text-white h-12 rounded-full transition-all duration-300 hover:-translate-y-1">
+            <Button onClick={() => navigate("/")} className="w-full shadow-md h-12 rounded-full transition-all duration-300 hover:-translate-y-1">
               <LogOut className="w-4 h-4 mr-2" />
               Exit
             </Button>
@@ -141,7 +141,7 @@ const VisitorForm = () => {
     >
       <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-0 fixed"></div>
 
-      <Button asChild variant="outline" size="sm" className="absolute top-6 left-6 shadow-sm z-10 transition-all hover:bg-muted/60">
+      <Button asChild variant="outline" size="sm" className="absolute top-6 left-6 shadow-sm z-50 transition-all hover:bg-muted/60">
         <Link to="/">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
