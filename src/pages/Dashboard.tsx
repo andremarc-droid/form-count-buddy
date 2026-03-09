@@ -111,11 +111,11 @@ const Dashboard = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center gap-3 mb-6">
         <DatePickerWithRange date={dateRange} setDate={setDateRange} />
 
         <Select value={industryFilter} onValueChange={setIndustryFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="All Industries" />
           </SelectTrigger>
           <SelectContent>
@@ -128,7 +128,7 @@ const Dashboard = () => {
           </SelectContent>
         </Select>
         <Select value={purposeFilter} onValueChange={setPurposeFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="All Purposes" />
           </SelectTrigger>
           <SelectContent>

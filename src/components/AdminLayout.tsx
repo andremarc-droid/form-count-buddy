@@ -1,4 +1,4 @@
-import dtcLogo from "@/assets/DTClogo.png";
+import logo from "@/assets/DTClogo.png";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
@@ -46,22 +46,15 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 h-full bg-sidebar border-r border-sidebar-border flex flex-col">
-        <div className="p-4 border-b border-sidebar-border">
-          <div className="flex flex-col items-center gap-1 text-center">
-            <img
-              src={dtcLogo}
-              alt="DTC Logo"
-              className={cn(
-                "w-40 object-contain transition-all duration-300",
-                theme === "dark" && "brightness-[1.8] saturate-[1.2]"
-              )}
-            />
-            <div>
-              <h2 className="font-heading font-bold text-sidebar-foreground text-sm">Foot Traffic</h2>
-              <p className="text-xs text-sidebar-foreground/60">Monitoring System</p>
+    <div className="h-screen flex bg-background overflow-hidden relative">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 h-full bg-sidebar border-r border-sidebar-border flex-col">
+        <div className="px-2 py-2 border-b border-sidebar-border">
+          <div className="flex flex-col items-center text-center">
+            <img src={logo} alt="DTC Logo" className="w-56 h-auto object-contain" />
+            <div className="-mt-2">
+              <h2 className="font-heading font-bold text-sidebar-foreground text-xl">Foot Traffic</h2>
+              <p className="text-[10px] text-sidebar-foreground/60 leading-tight">Monitoring System</p>
             </div>
           </div>
         </div>
@@ -112,10 +105,53 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Mobile Header */}
+        <header className="md:hidden flex items-center justify-between p-3 border-b">
+          <div className="flex items-center gap-1.5">
+            <img src={logo} alt="DTC Logo" className="h-10 w-auto object-contain" />
+            <div>
+              <h2 className="font-heading font-bold text-[13px] leading-tight">Foot Traffic</h2>
+              <p className="text-[9px] text-muted-foreground leading-tight">Monitoring System</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+              <span className="sr-only">Sign out</span>
+            </Button>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-auto p-4 pb-20 md:p-8 md:pb-8">
           <Outlet />
         </div>
+
+        {/* Mobile Bottom Tab Bar */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-background border-t border-border p-2">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex flex-col items-center justify-center w-full py-1 gap-1 text-[10px] font-medium transition-colors",
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
       </main>
     </div>
   );

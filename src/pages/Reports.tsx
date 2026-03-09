@@ -60,12 +60,12 @@ const Reports = () => {
 
   return (
     <>
-      <div className="page-header flex items-start justify-between">
+      <div className="page-header flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <h1 className="page-title">Reports</h1>
           <p className="page-subtitle">Generate and export visitor reports</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={exportCSV} disabled={isLoading}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV

@@ -148,13 +148,13 @@ const Analytics = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 1. Number of visitors per industry */}
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
                                 <div>
                                     <CardTitle className="font-heading text-lg">Visitors per Industry</CardTitle>
                                     <CardDescription>Absolute number of visitors by sector</CardDescription>
                                 </div>
                                 <Select value={chart1Type} onValueChange={(v: "pie" | "bar" | "line") => setChart1Type(v)}>
-                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
                                         <SelectValue placeholder="Chart Type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -173,13 +173,13 @@ const Analytics = () => {
 
                         {/* 2. Percentage distribution by industry */}
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
                                 <div>
                                     <CardTitle className="font-heading text-lg">Industry Distribution</CardTitle>
                                     <CardDescription>Percentage share by sector</CardDescription>
                                 </div>
                                 <Select value={chart2Type} onValueChange={(v: "pie" | "bar" | "line") => setChart2Type(v)}>
-                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
                                         <SelectValue placeholder="Chart Type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -200,13 +200,13 @@ const Analytics = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* 3. Percentage distribution per purpose by month */}
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
                                 <div>
                                     <CardTitle className="font-heading text-lg">Monthly Purpose Distribution</CardTitle>
                                     <CardDescription>Breakdown of visit purposes over time</CardDescription>
                                 </div>
                                 <Select value={chart3Type} onValueChange={(v: "bar" | "line") => setChart3Type(v)}>
-                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
                                         <SelectValue placeholder="Chart Type" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -224,13 +224,13 @@ const Analytics = () => {
 
                         {/* 4. Trend analysis per occupation (optional) */}
                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
                                 <div>
                                     <CardTitle className="font-heading text-lg">Top Occupations & Organizations</CardTitle>
                                     <CardDescription>Most frequent visitor backgrounds</CardDescription>
                                 </div>
                                 <Select value={chart4Type} onValueChange={(v: "pie" | "bar" | "line") => setChart4Type(v)}>
-                                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
                                         <SelectValue placeholder="Chart Type" />
                                     </SelectTrigger>
                                     <SelectContent>
