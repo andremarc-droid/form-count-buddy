@@ -1,3 +1,4 @@
+import bgImage from "@/assets/DTC.jpg";
 import logo from "@/assets/DTClogo.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,11 +38,15 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md animate-fade-in">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-0"></div>
+      <Card className="w-full max-w-md animate-fade-in relative z-10 bg-card/95 backdrop-blur-md border-border/50 shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mx-auto mb-6">
-            <img src={logo} alt="DTC Logo" className="h-16 w-auto object-contain" />
+            <img src={logo} alt="DTC Logo" className="h-40 w-auto object-contain" />
           </div>
           <CardTitle className="font-heading text-2xl">Admin Login</CardTitle>
           <CardDescription>Sign in to access the dashboard</CardDescription>
