@@ -96,6 +96,22 @@ export function useDeleteVisitor() {
   });
 }
 
+export function useBulkDeleteVisitors() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const deletePromises = ids.map((id) => {
+        const docRef = doc(db, "visitors", id);
+        return deleteDoc(docRef);
+      });
+      await Promise.all(deletePromises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+  });
+}
+
 export function computeStats(data: VisitorRow[]) {
   const today = format(new Date(), "yyyy-MM-dd");
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
