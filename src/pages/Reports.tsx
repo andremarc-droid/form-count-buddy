@@ -23,6 +23,7 @@ const Reports = () => {
   });
 
   const stats = computeStats(visitors);
+  const globalStats = computeStats(allVisitors);
 
   const exportCSV = () => {
     const headers = ["Full Name", "Age", "Gender", "Industry", "Detail", "Location", "Purpose", "Date"];
@@ -49,7 +50,7 @@ const Reports = () => {
   };
 
   const exportPDF = () => {
-    const printContent = generatePDFContent(visitors, stats, reportType);
+    const printContent = generatePDFContent(visitors, stats, globalStats, reportType);
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(printContent);
@@ -99,19 +100,19 @@ const Reports = () => {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Today</span>
-              <span className="font-semibold">{stats.daily}</span>
+              <span className="font-semibold">{globalStats.daily}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">This Week</span>
-              <span className="font-semibold">{stats.weekly}</span>
+              <span className="font-semibold">{globalStats.weekly}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">This Month</span>
-              <span className="font-semibold">{stats.monthly}</span>
+              <span className="font-semibold">{globalStats.monthly}</span>
             </div>
             <div className="flex justify-between border-t pt-3">
               <span className="text-muted-foreground font-medium">Total</span>
-              <span className="font-bold">{stats.total}</span>
+              <span className="font-bold">{globalStats.total}</span>
             </div>
           </CardContent>
         </Card>
@@ -161,6 +162,7 @@ const Reports = () => {
 function generatePDFContent(
   visitors: VisitorRow[],
   stats: ReturnType<typeof computeStats>,
+  globalStats: ReturnType<typeof computeStats>,
   reportType: string
 ) {
   const reportDate = format(new Date(), "MMMM dd, yyyy");
@@ -369,19 +371,19 @@ function generatePDFContent(
 
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-value">${stats.daily}</div>
+            <div class="stat-value">${globalStats.daily}</div>
             <div class="stat-label">Today</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">${stats.weekly}</div>
+            <div class="stat-value">${globalStats.weekly}</div>
             <div class="stat-label">This Week</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">${stats.monthly}</div>
+            <div class="stat-value">${globalStats.monthly}</div>
             <div class="stat-label">This Month</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">${stats.total}</div>
+            <div class="stat-value">${globalStats.total}</div>
             <div class="stat-label">Total Visitors</div>
           </div>
         </div>
