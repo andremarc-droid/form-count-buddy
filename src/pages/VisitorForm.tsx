@@ -92,8 +92,22 @@ const VisitorForm = () => {
   const onSubmit = async (data: VisitorFormData) => {
     setIsSubmitting(true);
     try {
+      // Clean the data: Firestore does not accept undefined values.
+      // Convert undefined optional fields to null.
+      const cleanedData: Record<string, unknown> = {
+        full_name: data.full_name,
+        age: data.age,
+        gender: data.gender,
+        industry: data.industry,
+        industry_detail: data.industry_detail ?? null,
+        industry_location: data.industry_location ?? null,
+        marginalized_type: data.marginalized_type ?? null,
+        purpose: data.purpose,
+        purpose_detail: data.purpose_detail ?? null,
+      };
+
       await addDoc(collection(db, "visitors"), {
-        ...data,
+        ...cleanedData,
         timestamp: serverTimestamp(),
       });
       setSubmitted(true);
