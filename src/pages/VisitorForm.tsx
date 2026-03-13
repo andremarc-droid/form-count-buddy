@@ -14,6 +14,10 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { isFuzzyMatch } from "@/lib/utils";
+import { format } from "date-fns";
+import { useVisitorData } from "@/hooks/useVisitorData";
+import { toast } from "sonner";
 
 type Industry = Database["public"]["Enums"]["visitor_industry"];
 type Purpose = Database["public"]["Enums"]["visit_purpose"];
@@ -76,6 +80,7 @@ const VisitorForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { data: allVisitors = [] } = useVisitorData();
 
   // Force light mode on visitor form
   useEffect(() => {
@@ -94,6 +99,18 @@ const VisitorForm = () => {
   const onSubmit = async (data: VisitorFormData) => {
     setIsSubmitting(true);
     try {
+      // Run smart duplicate check for today's entries
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      const existingToday = allVisitors.filter((v) => v.visit_date === todayStr);
+      
+      const isDuplicate = existingToday.some((v) => isFuzzyMatch(v.full_name, data.full_name));
+
+      if (isDuplicate) {
+        toast.error("It looks like you have already registered today.");
+        setIsSubmitting(false);
+        return;
+      }
+
       // Clean the data: Firestore does not accept undefined values.
       // Convert undefined optional fields to null.
       const cleanedData: Record<string, unknown> = {
