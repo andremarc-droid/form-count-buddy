@@ -239,24 +239,6 @@ const VisitorForm = () => {
                 {errors.industry && <p className="text-sm text-destructive">{errors.industry.message}</p>}
               </div>
 
-              {/* Industry Detail */}
-              {selectedIndustry && selectedIndustry !== "marginalized" && (
-                <div className="space-y-2 animate-fade-in">
-                  <Label htmlFor="industry_detail">
-                    {selectedIndustry === "academe" ? "School Name *" :
-                      selectedIndustry === "government" ? "Office Name *" :
-                        selectedIndustry === "private_sector" ? "Company / Freelancer *" :
-                          "Business Name *"}
-                  </Label>
-                  <Input
-                    id="industry_detail"
-                    placeholder={industryDetailPlaceholders[selectedIndustry]}
-                    {...register("industry_detail")}
-                  />
-                  {errors.industry_detail && <p className="text-sm text-destructive">{errors.industry_detail.message}</p>}
-                </div>
-              )}
-
               {/* Academe Type */}
               {selectedIndustry === "academe" && (
                 <div className="space-y-2 animate-fade-in">
@@ -284,6 +266,24 @@ const VisitorForm = () => {
                     {...register("government_position")}
                   />
                   {errors.government_position && <p className="text-sm text-destructive">{errors.government_position.message}</p>}
+                </div>
+              )}
+
+              {/* Industry Detail */}
+              {selectedIndustry && selectedIndustry !== "marginalized" && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label htmlFor="industry_detail">
+                    {selectedIndustry === "academe" ? "School Name *" :
+                      selectedIndustry === "government" ? "Office Name *" :
+                        selectedIndustry === "private_sector" ? "Company / Freelancer *" :
+                          "Business Name *"}
+                  </Label>
+                  <Input
+                    id="industry_detail"
+                    placeholder={industryDetailPlaceholders[selectedIndustry]}
+                    {...register("industry_detail")}
+                  />
+                  {errors.industry_detail && <p className="text-sm text-destructive">{errors.industry_detail.message}</p>}
                 </div>
               )}
 

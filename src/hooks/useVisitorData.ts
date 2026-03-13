@@ -273,10 +273,10 @@ export function formatIndustryDetail(v: VisitorRow | (Omit<VisitorRow, "id" | "v
     return v.marginalized_type ? formatLabel(v.marginalized_type) : "—";
   }
   if (v.industry === "academe") {
-    return [v.industry_detail, v.academe_type ? formatLabel(v.academe_type) : null].filter(Boolean).join(" - ") || "—";
+    return [v.academe_type ? formatLabel(v.academe_type) : null, v.industry_detail].filter(Boolean).join(" - ") || "—";
   }
   if (v.industry === "government") {
-    return [v.industry_detail, v.government_position].filter(Boolean).join(" - ") || "—";
+    return [v.government_position, v.industry_detail].filter(Boolean).join(" - ") || "—";
   }
   return v.industry_detail || "—";
 }

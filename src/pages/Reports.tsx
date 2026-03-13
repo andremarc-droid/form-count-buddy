@@ -87,6 +87,7 @@ const Reports = () => {
             <SelectItem value="daily">Daily Summary</SelectItem>
             <SelectItem value="monthly">Monthly Summary</SelectItem>
             <SelectItem value="industry">Industry Summary</SelectItem>
+            <SelectItem value="all">All-Time Summary</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -167,7 +168,7 @@ function generatePDFContent(
 ) {
   const reportDate = format(new Date(), "MMMM dd, yyyy");
   const reportTime = format(new Date(), "hh:mm a");
-  const reportLabel = reportType === "daily" ? "Daily" : reportType === "monthly" ? "Monthly" : "Industry";
+  const reportLabel = reportType === "daily" ? "Daily" : reportType === "monthly" ? "Monthly" : reportType === "industry" ? "Industry" : "All-Time";
 
   return `
     <!DOCTYPE html>
@@ -436,7 +437,7 @@ function generatePDFContent(
               <tr><th>Name</th><th>Age</th><th>Gender</th><th>Industry</th><th>Purpose</th><th>Date</th></tr>
             </thead>
             <tbody>
-              ${visitors.slice(0, 100).map((v) => `
+              ${visitors.map((v) => `
                 <tr>
                   <td style="font-weight:500">${v.full_name}</td>
                   <td>${v.age}</td>
@@ -449,7 +450,6 @@ function generatePDFContent(
               ${visitors.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:#94a3b8">No visitors recorded</td></tr>' : ''}
             </tbody>
           </table>
-          ${visitors.length > 100 ? '<p style="margin-top:8px;font-size:11px;color:#94a3b8;text-align:center">Showing first 100 of ' + visitors.length + ' visitors</p>' : ''}
         </div>` : ""}
 
         <div class="footer">

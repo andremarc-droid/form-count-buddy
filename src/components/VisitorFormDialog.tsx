@@ -302,31 +302,6 @@ export function VisitorFormDialog({
                         )}
                     </div>
 
-                    {/* Industry Detail */}
-                    {selectedIndustry && selectedIndustry !== "marginalized" && (
-                        <div className="space-y-2">
-                            <Label htmlFor="dlg_industry_detail">
-                                {selectedIndustry === "academe"
-                                    ? "School Name"
-                                    : selectedIndustry === "government"
-                                        ? "Office Name"
-                                        : selectedIndustry === "private_sector"
-                                            ? "Company / Freelancer"
-                                            : "Business Name"}
-                            </Label>
-                            <Input
-                                id="dlg_industry_detail"
-                                placeholder={industryDetailPlaceholders[selectedIndustry]}
-                                {...register("industry_detail")}
-                            />
-                            {errors.industry_detail && (
-                                <p className="text-sm text-destructive">
-                                    {errors.industry_detail.message}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
                     {/* Academe Type */}
                     {selectedIndustry === "academe" && (
                         <div className="space-y-2">
@@ -365,6 +340,31 @@ export function VisitorFormDialog({
                             {errors.government_position && (
                                 <p className="text-sm text-destructive">
                                     {errors.government_position.message}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Industry Detail */}
+                    {selectedIndustry && selectedIndustry !== "marginalized" && (
+                        <div className="space-y-2">
+                            <Label htmlFor="dlg_industry_detail">
+                                {selectedIndustry === "academe"
+                                    ? "School Name"
+                                    : selectedIndustry === "government"
+                                        ? "Office Name"
+                                        : selectedIndustry === "private_sector"
+                                            ? "Company / Freelancer"
+                                            : "Business Name"}
+                            </Label>
+                            <Input
+                                id="dlg_industry_detail"
+                                placeholder={industryDetailPlaceholders[selectedIndustry]}
+                                {...register("industry_detail")}
+                            />
+                            {errors.industry_detail && (
+                                <p className="text-sm text-destructive">
+                                    {errors.industry_detail.message}
                                 </p>
                             )}
                         </div>
