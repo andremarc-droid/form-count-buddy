@@ -12,6 +12,8 @@ export type VisitorRow = {
   industry_detail: string | null;
   industry_location: string | null;
   marginalized_type: string | null;
+  academe_type: string | null;
+  government_position: string | null;
   purpose: string;
   purpose_detail: string | null;
   visit_date: string;
@@ -40,6 +42,8 @@ export function useVisitorData(dateRange?: { from: Date; to: Date }) {
           industry_detail: d.industry_detail ?? null,
           industry_location: d.industry_location ?? null,
           marginalized_type: d.marginalized_type ?? null,
+          academe_type: d.academe_type ?? null,
+          government_position: d.government_position ?? null,
           purpose: d.purpose ?? "",
           purpose_detail: d.purpose_detail ?? null,
           visit_date: format(ts, "yyyy-MM-dd"),
@@ -138,14 +142,19 @@ export function computeStats(data: VisitorRow[]) {
   // Purpose distribution
   const purposeCount: Record<string, number> = {};
   data.forEach((v) => {
-    purposeCount[v.purpose] = (purposeCount[v.purpose] || 0) + 1;
+    const rawPurpose = v.purpose === "others" && v.purpose_detail ? v.purpose_detail : v.purpose;
+    purposeCount[rawPurpose] = (purposeCount[rawPurpose] || 0) + 1;
   });
 
-  const purposeData = Object.entries(purposeCount).map(([name, value]) => ({
-    name: formatLabel(name),
-    value,
-    percentage: data.length ? Math.round((value / data.length) * 100) : 0,
-  }));
+  const purposeData = Object.entries(purposeCount).map(([name, value]) => {
+    // If formatLabel falls back to key (doesn't exist in predefined labels), it just uses the specific inputted text
+    const label = formatLabel(name);
+    return {
+      name: label === name ? name : label,
+      value,
+      percentage: data.length ? Math.round((value / data.length) * 100) : 0,
+    };
+  });
 
   // Daily trend (15 days starting from the very first entry)
   const dailyTrend: { date: string; count: number }[] = [];
@@ -250,9 +259,24 @@ export function formatLabel(key: string): string {
     pwd: "PWD",
     unemployed: "Unemployed",
     senior: "Senior Citizen",
+    student: "Student",
+    instructor: "Instructor",
     training: "Training",
     coworking: "Co-working",
     conference_room: "Conference Room",
   };
   return labels[key] || key;
+}
+
+export function formatIndustryDetail(v: VisitorRow | (Omit<VisitorRow, "id" | "visit_date" | "visit_time" | "created_at"> & { id?: string })): string {
+  if (v.industry === "marginalized") {
+    return v.marginalized_type ? formatLabel(v.marginalized_type) : "—";
+  }
+  if (v.industry === "academe") {
+    return [v.industry_detail, v.academe_type ? formatLabel(v.academe_type) : null].filter(Boolean).join(" - ") || "—";
+  }
+  if (v.industry === "government") {
+    return [v.industry_detail, v.government_position].filter(Boolean).join(" - ") || "—";
+  }
+  return v.industry_detail || "—";
 }

@@ -15,7 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { VisitorFormDialog } from "@/components/VisitorFormDialog";
-import { formatLabel, useBulkDeleteVisitors, useVisitorData, type VisitorRow } from "@/hooks/useVisitorData";
+import { formatIndustryDetail, formatLabel, useBulkDeleteVisitors, useVisitorData, type VisitorRow } from "@/hooks/useVisitorData";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -168,8 +168,8 @@ const AdminVisitors = () => {
                   <TableCell>{v.age}</TableCell>
                   <TableCell className="capitalize">{v.gender}</TableCell>
                   <TableCell>{formatLabel(v.industry)}</TableCell>
-                  <TableCell>{v.industry === "marginalized" ? formatLabel(v.marginalized_type ?? "") || "—" : v.industry_detail || "—"}</TableCell>
-                  <TableCell>{formatLabel(v.purpose)}</TableCell>
+                  <TableCell>{formatIndustryDetail(v)}</TableCell>
+                  <TableCell>{v.purpose === "others" && v.purpose_detail ? v.purpose_detail : formatLabel(v.purpose)}</TableCell>
                   <TableCell>{v.visit_date}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">

@@ -49,6 +49,11 @@ const visitorSchema = z.object({
         .enum(["pwd", "unemployed", "senior"] as const)
         .optional()
         .nullable(),
+    academe_type: z
+        .enum(["student", "instructor"] as const)
+        .optional()
+        .nullable(),
+    government_position: z.string().max(200).optional().nullable(),
     purpose: z.enum([
         "training",
         "coworking",
@@ -137,6 +142,8 @@ export function VisitorFormDialog({
                 industry_detail: visitor.industry_detail,
                 industry_location: visitor.industry_location,
                 marginalized_type: visitor.marginalized_type as MarginalizedType | null,
+                academe_type: visitor.academe_type as "student" | "instructor" | null,
+                government_position: visitor.government_position,
                 purpose: visitor.purpose as Purpose,
                 purpose_detail: visitor.purpose_detail,
             });
@@ -149,6 +156,8 @@ export function VisitorFormDialog({
                 industry_detail: null,
                 industry_location: null,
                 marginalized_type: null,
+                academe_type: null,
+                government_position: null,
                 purpose: undefined,
                 purpose_detail: null,
             });
@@ -164,6 +173,8 @@ export function VisitorFormDialog({
             industry_detail: data.industry_detail ?? null,
             industry_location: data.industry_location ?? null,
             marginalized_type: data.marginalized_type ?? null,
+            academe_type: data.academe_type ?? null,
+            government_position: data.government_position ?? null,
             purpose: data.purpose,
             purpose_detail: data.purpose_detail ?? null,
         };
@@ -264,8 +275,12 @@ export function VisitorFormDialog({
                                 if (v === "marginalized") {
                                     setValue("industry_detail", undefined);
                                     setValue("industry_location", undefined);
+                                    setValue("academe_type", undefined);
+                                    setValue("government_position", undefined);
                                 } else {
                                     setValue("marginalized_type", undefined);
+                                    if (v !== "academe") setValue("academe_type", undefined);
+                                    if (v !== "government") setValue("government_position", undefined);
                                 }
                             }}
                         >
@@ -304,6 +319,54 @@ export function VisitorFormDialog({
                                 placeholder={industryDetailPlaceholders[selectedIndustry]}
                                 {...register("industry_detail")}
                             />
+                            {errors.industry_detail && (
+                                <p className="text-sm text-destructive">
+                                    {errors.industry_detail.message}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Academe Type */}
+                    {selectedIndustry === "academe" && (
+                        <div className="space-y-2">
+                            <Label>Role *</Label>
+                            <Select
+                                value={watch("academe_type") || ""}
+                                onValueChange={(v) =>
+                                    setValue("academe_type", v as "student" | "instructor")
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="student">Student</SelectItem>
+                                    <SelectItem value="instructor">Instructor</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.academe_type && (
+                                <p className="text-sm text-destructive">
+                                    {errors.academe_type.message}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Government Position */}
+                    {selectedIndustry === "government" && (
+                        <div className="space-y-2">
+                            <Label htmlFor="dlg_government_position">Position *</Label>
+                            <Input
+                                id="dlg_government_position"
+                                placeholder="e.g. Department Head, Staff"
+                                {...register("government_position")}
+                            />
+                            {errors.government_position && (
+                                <p className="text-sm text-destructive">
+                                    {errors.government_position.message}
+                                </p>
+                            )}
                         </div>
                     )}
 

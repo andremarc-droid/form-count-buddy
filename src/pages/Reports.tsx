@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { VisitorRow } from "@/hooks/useVisitorData";
-import { computeStats, formatLabel, useVisitorData } from "@/hooks/useVisitorData";
+import { computeStats, formatIndustryDetail, formatLabel, useVisitorData } from "@/hooks/useVisitorData";
 import { format } from "date-fns";
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
@@ -32,9 +32,9 @@ const Reports = () => {
       v.age,
       v.gender,
       formatLabel(v.industry),
-      v.industry_detail || "",
+      formatIndustryDetail(v),
       v.industry_location || "",
-      formatLabel(v.purpose),
+      v.purpose === "others" && v.purpose_detail ? v.purpose_detail : formatLabel(v.purpose),
       v.visit_date,
     ]);
 
@@ -441,8 +441,8 @@ function generatePDFContent(
                   <td style="font-weight:500">${v.full_name}</td>
                   <td>${v.age}</td>
                   <td>${v.gender}</td>
-                  <td>${formatLabel(v.industry)}</td>
-                  <td>${formatLabel(v.purpose)}</td>
+                  <td>${formatIndustryDetail(v)}</td>
+                  <td>${v.purpose === "others" && v.purpose_detail ? v.purpose_detail : formatLabel(v.purpose)}</td>
                   <td>${v.visit_date}</td>
                 </tr>
               `).join("")}

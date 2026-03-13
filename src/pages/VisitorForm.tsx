@@ -27,6 +27,8 @@ const visitorSchema = z.object({
   industry_detail: z.string().max(200).optional(),
   industry_location: z.string().max(200).optional(),
   marginalized_type: z.enum(["pwd", "unemployed", "senior"] as const).optional(),
+  academe_type: z.enum(["student", "instructor"] as const).optional(),
+  government_position: z.string().max(200).optional(),
   purpose: z.enum(["training", "coworking", "conference_room", "others"] as const),
   purpose_detail: z.string().max(200).optional(),
 });
@@ -102,6 +104,8 @@ const VisitorForm = () => {
         industry_detail: data.industry_detail ?? null,
         industry_location: data.industry_location ?? null,
         marginalized_type: data.marginalized_type ?? null,
+        academe_type: data.academe_type ?? null,
+        government_position: data.government_position ?? null,
         purpose: data.purpose,
         purpose_detail: data.purpose_detail ?? null,
       };
@@ -215,8 +219,12 @@ const VisitorForm = () => {
                   if (v === "marginalized") {
                     setValue("industry_detail", undefined);
                     setValue("industry_location", undefined);
+                    setValue("academe_type", undefined);
+                    setValue("government_position", undefined);
                   } else {
                     setValue("marginalized_type", undefined);
+                    if (v !== "academe") setValue("academe_type", undefined);
+                    if (v !== "government") setValue("government_position", undefined);
                   }
                 }}>
                   <SelectTrigger>
@@ -245,6 +253,37 @@ const VisitorForm = () => {
                     placeholder={industryDetailPlaceholders[selectedIndustry]}
                     {...register("industry_detail")}
                   />
+                  {errors.industry_detail && <p className="text-sm text-destructive">{errors.industry_detail.message}</p>}
+                </div>
+              )}
+
+              {/* Academe Type */}
+              {selectedIndustry === "academe" && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label>Role *</Label>
+                  <Select onValueChange={(v) => setValue("academe_type", v as "student" | "instructor")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="instructor">Instructor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.academe_type && <p className="text-sm text-destructive">{errors.academe_type.message}</p>}
+                </div>
+              )}
+
+              {/* Government Position */}
+              {selectedIndustry === "government" && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label htmlFor="government_position">Position *</Label>
+                  <Input
+                    id="government_position"
+                    placeholder="e.g. Department Head, Staff"
+                    {...register("government_position")}
+                  />
+                  {errors.government_position && <p className="text-sm text-destructive">{errors.government_position.message}</p>}
                 </div>
               )}
 
