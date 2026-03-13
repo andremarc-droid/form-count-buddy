@@ -169,6 +169,39 @@ export function computeStats(data: VisitorRow[]) {
     });
   }
 
+  // Weekly trend (last 12 weeks from startDate)
+  const weeklyTrend: { date: string; count: number }[] = [];
+  let currentStartW = startOfWeek(startDate, { weekStartsOn: 1 });
+  for (let i = 0; i < 12; i++) {
+    const wDate = addDays(currentStartW, i * 7);
+    const label = format(wDate, "MMM dd");
+    const endWDate = format(addDays(wDate, 6), "yyyy-MM-dd");
+    const startWStr = format(wDate, "yyyy-MM-dd");
+    
+    weeklyTrend.push({
+      date: label,
+      count: data.filter((v) => v.visit_date >= startWStr && v.visit_date <= endWDate).length,
+    });
+  }
+
+  // Monthly trend (last 12 months from startDate)
+  const monthlyTrend: { date: string; count: number }[] = [];
+  let currentStartM = startOfMonth(startDate);
+  for (let i = 0; i < 12; i++) {
+    const mDate = startOfMonth(addDays(currentStartM, i * 32)); // rough jump to cover next months safely, startOfMonth normalizes it
+    const label = format(mDate, "MMM yyyy");
+    const endMDate = format(endOfMonth(mDate), "yyyy-MM-dd");
+    const startMStr = format(mDate, "yyyy-MM-dd");
+
+    // Only add if we haven't added this month yet (due to the rough jump)
+    if (!monthlyTrend.find(m => m.date === label)) {
+      monthlyTrend.push({
+        date: label,
+        count: data.filter((v) => v.visit_date >= startMStr && v.visit_date <= endMDate).length,
+      });
+    }
+  }
+
   // Purpose by Month
   const monthlyPurposeCount: Record<string, Record<string, number>> = {};
   data.forEach((v) => {
@@ -204,7 +237,7 @@ export function computeStats(data: VisitorRow[]) {
     .slice(0, 10)
     .map(([name, count]) => ({ name, count }));
 
-  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, purposeByMonth, topOccupations };
+  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, topOccupations };
 }
 
 export function formatLabel(key: string): string {

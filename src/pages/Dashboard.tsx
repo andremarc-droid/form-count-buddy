@@ -85,6 +85,7 @@ const Dashboard = () => {
   const [purposeFilter, setPurposeFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [dailyChartType, setDailyChartType] = useState<"bar" | "line">("bar");
+  const [footTrafficRange, setFootTrafficRange] = useState<"daily" | "weekly" | "monthly">("daily");
   const [industryChartType, setIndustryChartType] = useState<"pie" | "bar" | "line">("pie");
   const [purposeChartType, setPurposeChartType] = useState<"pie" | "bar" | "line">("pie");
 
@@ -163,25 +164,39 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Daily Trend */}
+        {/* Foot Traffic Trend */}
         <Card className="shadow-lg border-border/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-heading text-lg">Daily Foot Traffic</CardTitle>
-            <Select value={dailyChartType} onValueChange={(v: "bar" | "line") => setDailyChartType(v)}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <SelectValue placeholder="Chart Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bar">Bar Graph</SelectItem>
-                <SelectItem value="line">Line Graph</SelectItem>
-              </SelectContent>
-            </Select>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between space-y-0 pb-2 gap-2">
+            <CardTitle className="font-heading text-lg">
+              {footTrafficRange === "daily" ? "Daily" : footTrafficRange === "weekly" ? "Weekly" : "Monthly"} Foot Traffic
+            </CardTitle>
+            <div className="flex gap-2">
+              <Select value={footTrafficRange} onValueChange={(v: "daily" | "weekly" | "monthly") => setFootTrafficRange(v)}>
+                <SelectTrigger className="w-[110px] h-8 text-xs">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={dailyChartType} onValueChange={(v: "bar" | "line") => setDailyChartType(v)}>
+                <SelectTrigger className="w-[110px] h-8 text-xs">
+                  <SelectValue placeholder="Chart Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Bar Graph</SelectItem>
+                  <SelectItem value="line">Line Graph</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               {dailyChartType === "bar" ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.dailyTrend}>
+                  <BarChart data={footTrafficRange === "daily" ? stats.dailyTrend : footTrafficRange === "weekly" ? stats.weeklyTrend : stats.monthlyTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
                     <XAxis dataKey="date" fontSize={11} tickLine={false} />
                     <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
@@ -191,7 +206,7 @@ const Dashboard = () => {
                 </ResponsiveContainer>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={stats.dailyTrend}>
+                  <LineChart data={footTrafficRange === "daily" ? stats.dailyTrend : footTrafficRange === "weekly" ? stats.weeklyTrend : stats.monthlyTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
                     <XAxis dataKey="date" fontSize={11} tickLine={false} padding={{ left: 30, right: 30 }} />
                     <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
