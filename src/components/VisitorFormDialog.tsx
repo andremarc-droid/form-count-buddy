@@ -50,7 +50,7 @@ const visitorSchema = z.object({
         .optional()
         .nullable(),
     academe_type: z
-        .enum(["student", "instructor"] as const)
+        .enum(["student", "instructor", "non_teaching_staff"] as const)
         .optional()
         .nullable(),
     government_position: z.string().max(200).optional().nullable(),
@@ -142,7 +142,7 @@ export function VisitorFormDialog({
                 industry_detail: visitor.industry_detail,
                 industry_location: visitor.industry_location,
                 marginalized_type: visitor.marginalized_type as MarginalizedType | null,
-                academe_type: visitor.academe_type as "student" | "instructor" | null,
+                academe_type: visitor.academe_type as "student" | "instructor" | "non_teaching_staff" | null,
                 government_position: visitor.government_position,
                 purpose: visitor.purpose as Purpose,
                 purpose_detail: visitor.purpose_detail,
@@ -309,7 +309,7 @@ export function VisitorFormDialog({
                             <Select
                                 value={watch("academe_type") || ""}
                                 onValueChange={(v) =>
-                                    setValue("academe_type", v as "student" | "instructor")
+                                    setValue("academe_type", v as "student" | "instructor" | "non_teaching_staff")
                                 }
                             >
                                 <SelectTrigger>
@@ -318,6 +318,7 @@ export function VisitorFormDialog({
                                 <SelectContent>
                                     <SelectItem value="student">Student</SelectItem>
                                     <SelectItem value="instructor">Instructor</SelectItem>
+                                    <SelectItem value="non_teaching_staff">Non-Teaching Staff</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.academe_type && (

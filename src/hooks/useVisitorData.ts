@@ -261,6 +261,7 @@ export function formatLabel(key: string): string {
     senior: "Senior Citizen",
     student: "Student",
     instructor: "Instructor",
+    non_teaching_staff: "Non-Teaching Staff",
     training: "Training",
     coworking: "Co-working",
     conference_room: "Conference Room",

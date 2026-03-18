@@ -31,7 +31,7 @@ const visitorSchema = z.object({
   industry_detail: z.string().max(200).optional(),
   industry_location: z.string().max(200).optional(),
   marginalized_type: z.enum(["pwd", "unemployed", "senior"] as const).optional(),
-  academe_type: z.enum(["student", "instructor"] as const).optional(),
+  academe_type: z.enum(["student", "instructor", "non_teaching_staff"] as const).optional(),
   government_position: z.string().max(200).optional(),
   purpose: z.enum(["training", "coworking", "conference_room", "others"] as const),
   purpose_detail: z.string().max(200).optional(),
@@ -260,13 +260,14 @@ const VisitorForm = () => {
               {selectedIndustry === "academe" && (
                 <div className="space-y-2 animate-fade-in">
                   <Label>Role *</Label>
-                  <Select onValueChange={(v) => setValue("academe_type", v as "student" | "instructor")}>
+                  <Select onValueChange={(v) => setValue("academe_type", v as "student" | "instructor" | "non_teaching_staff")}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="student">Student</SelectItem>
                       <SelectItem value="instructor">Instructor</SelectItem>
+                      <SelectItem value="non_teaching_staff">Non-Teaching Staff</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.academe_type && <p className="text-sm text-destructive">{errors.academe_type.message}</p>}
