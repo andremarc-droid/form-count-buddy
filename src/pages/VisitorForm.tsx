@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Database } from "@/integrations/supabase/types";
 import { db } from "@/lib/firebase";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, getDocs, query, where, Timestamp } from "firebase/firestore";
 import { ArrowLeft, CheckCircle2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -100,10 +100,23 @@ const VisitorForm = () => {
     setIsSubmitting(true);
     try {
       // Run smart duplicate check for today's entries
-      const todayStr = format(new Date(), "yyyy-MM-dd");
-      const existingToday = allVisitors.filter((v) => v.visit_date === todayStr);
+      // Fetch live data directly from Firestore to ensure multi-device sync
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
       
-      const isDuplicate = existingToday.some((v) => isFuzzyMatch(v.full_name, data.full_name));
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const q = query(
+        collection(db, "visitors"),
+        where("timestamp", ">=", Timestamp.fromDate(todayStart)),
+        where("timestamp", "<=", Timestamp.fromDate(todayEnd))
+      );
+      
+      const snapshot = await getDocs(q);
+      const existingTodayNames = snapshot.docs.map(doc => doc.data().full_name as string);
+
+      const isDuplicate = existingTodayNames.some((name) => name && isFuzzyMatch(name, data.full_name));
 
       if (isDuplicate) {
         toast.error("It looks like you have already registered today.");
