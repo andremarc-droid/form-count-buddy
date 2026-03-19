@@ -62,16 +62,20 @@ export function isFuzzyMatch(name1: string, name2: string): boolean {
   const tokens2 = n2.split(" ");
   
   if (tokens1.length >= 2 && tokens2.length >= 2) {
-    const isSubset = (smaller: string[], larger: string[]) => {
-      // First names must perfectly match
-      if (smaller[0] !== larger[0]) return false;
-      // Last names must perfectly match
-      if (smaller[smaller.length - 1] !== larger[larger.length - 1]) return false;
-      return smaller.every(t => larger.includes(t));
+    const isTokensMatch = (smaller: string[], larger: string[]) => {
+      // Check if every token in the smaller name is present in the larger name,
+      // allowing for a minor typo (levenshtein distance <= 1) for words longer than 3 chars
+      return smaller.every(t1 => {
+        return larger.some(t2 => {
+          if (t1 === t2) return true;
+          if (t1.length > 3 && t2.length > 3 && levenshteinDistance(t1, t2) <= 1) return true;
+          return false;
+        });
+      });
     };
     
-    if (tokens1.length < tokens2.length && isSubset(tokens1, tokens2)) return true;
-    if (tokens2.length < tokens1.length && isSubset(tokens2, tokens1)) return true;
+    if (tokens1.length <= tokens2.length && isTokensMatch(tokens1, tokens2)) return true;
+    if (tokens2.length <= tokens1.length && isTokensMatch(tokens2, tokens1)) return true;
   }
 
   return false;
