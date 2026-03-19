@@ -143,6 +143,7 @@ const Dashboard = () => {
             <SelectItem value="training">Training</SelectItem>
             <SelectItem value="coworking">Co-working</SelectItem>
             <SelectItem value="conference_room">Conference Room</SelectItem>
+            <SelectItem value="others">Others/Uban Pa</SelectItem>
           </SelectContent>
         </Select>
       </div>
