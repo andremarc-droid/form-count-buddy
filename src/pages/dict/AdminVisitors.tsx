@@ -140,7 +140,7 @@ const DictAdminVisitors = () => {
               <TableHead>Gender</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Detail</TableHead>
-              <TableHead>Facility</TableHead>
+              <TableHead>Purpose</TableHead>
               <TableHead>Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -169,7 +169,7 @@ const DictAdminVisitors = () => {
                   <TableCell className="capitalize">{v.gender}</TableCell>
                   <TableCell>{formatDictLabel(v.industry)}</TableCell>
                   <TableCell>{formatDictIndustryDetail(v)}</TableCell>
-                  <TableCell>{v.purpose === "others" && v.purpose_detail ? v.purpose_detail : formatDictLabel(v.purpose)}</TableCell>
+                  <TableCell>{v.purpose}</TableCell>
                   <TableCell>{v.visit_date}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">

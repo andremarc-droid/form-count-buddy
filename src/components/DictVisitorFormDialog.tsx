@@ -54,13 +54,7 @@ const visitorSchema = z.object({
         .optional()
         .nullable(),
     government_position: z.string().max(200).optional().nullable(),
-    purpose: z.enum([
-        "training",
-        "coworking",
-        "conference_room",
-        "others",
-    ] as const),
-    purpose_detail: z.string().max(200).optional().nullable(),
+    purpose: z.string().min(1, "Purpose is required").max(200),
 });
 
 type FormValues = z.infer<typeof visitorSchema>;
@@ -72,7 +66,7 @@ type Industry =
     | "msme"
     | "marginalized";
 type MarginalizedType = "pwd" | "unemployed" | "senior";
-type Purpose = "training" | "coworking" | "conference_room" | "others";
+
 
 const industryLabels: Record<Industry, string> = {
     academe: "Academe",
@@ -82,12 +76,7 @@ const industryLabels: Record<Industry, string> = {
     marginalized: "Marginalized Sector",
 };
 
-const purposeLabels: Record<Purpose, string> = {
-    training: "Training Room",
-    coworking: "Co-working Room",
-    conference_room: "Conference Room",
-    others: "Uban Pa/Others",
-};
+
 
 const marginalizedLabels: Record<MarginalizedType, string> = {
     pwd: "PWD",
@@ -130,7 +119,7 @@ export function DictVisitorFormDialog({
     });
 
     const selectedIndustry = watch("industry");
-    const selectedPurpose = watch("purpose");
+
 
     useEffect(() => {
         if (open && visitor) {
@@ -144,8 +133,7 @@ export function DictVisitorFormDialog({
                 marginalized_type: visitor.marginalized_type as MarginalizedType | null,
                 academe_type: visitor.academe_type as "student" | "instructor" | "non_teaching_staff" | null,
                 government_position: visitor.government_position,
-                purpose: visitor.purpose as Purpose,
-                purpose_detail: visitor.purpose_detail,
+                purpose: visitor.purpose,
             });
         } else if (open) {
             reset({
@@ -158,8 +146,7 @@ export function DictVisitorFormDialog({
                 marginalized_type: null,
                 academe_type: null,
                 government_position: null,
-                purpose: undefined,
-                purpose_detail: null,
+                purpose: "",
             });
         }
     }, [open, visitor, reset]);
@@ -176,7 +163,6 @@ export function DictVisitorFormDialog({
             academe_type: data.academe_type ?? null,
             government_position: data.government_position ?? null,
             purpose: data.purpose,
-            purpose_detail: data.purpose_detail ?? null,
         };
 
         try {
@@ -412,40 +398,18 @@ export function DictVisitorFormDialog({
 
                     {/* Purpose */}
                     <div className="space-y-2">
-                        <Label>Facility to Use *</Label>
-                        <Select
-                            value={selectedPurpose || ""}
-                            onValueChange={(v) => setValue("purpose", v as Purpose)}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select purpose" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {(Object.keys(purposeLabels) as Purpose[]).map((key) => (
-                                    <SelectItem key={key} value={key}>
-                                        {purposeLabels[key]}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Label htmlFor="dict_dlg_purpose">Purpose *</Label>
+                        <Input
+                            id="dict_dlg_purpose"
+                            placeholder="e.g., Meeting, Training, Inquiry"
+                            {...register("purpose")}
+                        />
                         {errors.purpose && (
                             <p className="text-sm text-destructive">
                                 {errors.purpose.message}
                             </p>
                         )}
                     </div>
-
-                    {/* Purpose Detail */}
-                    {selectedPurpose === "others" && (
-                        <div className="space-y-2">
-                            <Label htmlFor="dict_dlg_purpose_detail">Please specify *</Label>
-                            <Input
-                                id="dict_dlg_purpose_detail"
-                                placeholder="Specify your purpose"
-                                {...register("purpose_detail")}
-                            />
-                        </div>
-                    )}
 
                     <DialogFooter>
                         <Button

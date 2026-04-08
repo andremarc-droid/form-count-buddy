@@ -15,7 +15,6 @@ export type DictVisitorRow = {
   academe_type: string | null;
   government_position: string | null;
   purpose: string;
-  purpose_detail: string | null;
   visit_date: string;
   visit_time: string;
   created_at: string;
@@ -45,7 +44,6 @@ export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
           academe_type: d.academe_type ?? null,
           government_position: d.government_position ?? null,
           purpose: d.purpose ?? "",
-          purpose_detail: d.purpose_detail ?? null,
           visit_date: format(ts, "yyyy-MM-dd"),
           visit_time: format(ts, "HH:mm:ss"),
           created_at: ts.toISOString(),
@@ -142,18 +140,15 @@ export function computeDictStats(data: DictVisitorRow[]) {
   // Purpose distribution
   const purposeCount: Record<string, number> = {};
   data.forEach((v) => {
-    const rawPurpose = v.purpose === "others" && v.purpose_detail ? v.purpose_detail : v.purpose;
-    purposeCount[rawPurpose] = (purposeCount[rawPurpose] || 0) + 1;
+    const purpose = v.purpose || "Unknown";
+    purposeCount[purpose] = (purposeCount[purpose] || 0) + 1;
   });
 
-  const purposeData = Object.entries(purposeCount).map(([name, value]) => {
-    const label = formatDictLabel(name);
-    return {
-      name: label === name ? name : label,
-      value,
-      percentage: data.length ? Math.round((value / data.length) * 100) : 0,
-    };
-  });
+  const purposeData = Object.entries(purposeCount).map(([name, value]) => ({
+    name,
+    value,
+    percentage: data.length ? Math.round((value / data.length) * 100) : 0,
+  }));
 
   // Daily trend (15 days starting from the very first entry)
   const dailyTrend: { date: string; count: number }[] = [];
@@ -206,24 +201,24 @@ export function computeDictStats(data: DictVisitorRow[]) {
     }
   }
 
-  // Purpose by Month
+  // Purpose by Month (dynamic — no hardcoded categories)
+  const allPurposes = new Set<string>();
   const monthlyPurposeCount: Record<string, Record<string, number>> = {};
   data.forEach((v) => {
     const month = format(parseISO(v.visit_date), "MMM yyyy");
+    const purpose = v.purpose || "Unknown";
+    allPurposes.add(purpose);
     if (!monthlyPurposeCount[month]) {
-      monthlyPurposeCount[month] = {
-        training: 0,
-        coworking: 0,
-        conference_room: 0,
-        others: 0,
-      };
+      monthlyPurposeCount[month] = {};
     }
-    monthlyPurposeCount[month][v.purpose] = (monthlyPurposeCount[month][v.purpose] || 0) + 1;
+    monthlyPurposeCount[month][purpose] = (monthlyPurposeCount[month][purpose] || 0) + 1;
   });
 
   const purposeByMonth = Object.entries(monthlyPurposeCount)
     .map(([month, counts]) => ({ month, ...counts }))
     .reverse();
+
+  const purposeKeys = Array.from(allPurposes);
 
   // Top Occupations (from industry_detail)
   const occupationCount: Record<string, number> = {};
@@ -241,7 +236,7 @@ export function computeDictStats(data: DictVisitorRow[]) {
     .slice(0, 10)
     .map(([name, count]) => ({ name, count }));
 
-  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, topOccupations };
+  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, purposeKeys, topOccupations };
 }
 
 export function formatDictLabel(key: string): string {
@@ -257,9 +252,7 @@ export function formatDictLabel(key: string): string {
     student: "Student",
     instructor: "Instructor",
     non_teaching_staff: "Non-Teaching Staff",
-    training: "Training",
-    coworking: "Co-working",
-    conference_room: "Conference Room",
+
   };
   return labels[key] || key;
 }

@@ -34,7 +34,7 @@ const DictReports = () => {
       formatDictLabel(v.industry),
       formatDictIndustryDetail(v),
       v.industry_location || "",
-      v.purpose === "others" && v.purpose_detail ? v.purpose_detail : formatDictLabel(v.purpose),
+      v.purpose,
       v.visit_date,
     ]);
 
@@ -437,7 +437,7 @@ function generatePDFContent(
                   <td>${v.age}</td>
                   <td>${v.gender}</td>
                   <td>${formatDictIndustryDetail(v)}</td>
-                  <td>${v.purpose === "others" && v.purpose_detail ? v.purpose_detail : formatDictLabel(v.purpose)}</td>
+                  <td>${v.purpose}</td>
                   <td>${v.visit_date}</td>
                 </tr>
               `).join("")}

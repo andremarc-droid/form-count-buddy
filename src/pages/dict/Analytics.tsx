@@ -85,7 +85,7 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
     );
 };
 
-const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line") => {
+const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line", purposeKeys: string[]) => {
     if (data.length === 0) return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
 
     if (type === "line") {
@@ -97,10 +97,9 @@ const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line") => {
                     <YAxis fontSize={11} tickLine={false} />
                     <Tooltip />
                     <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                    <Line type="monotone" dataKey="training" name="Training" stroke={COLORS[0]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="coworking" name="Co-working" stroke={COLORS[1]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="conference_room" name="Conference Room" stroke={COLORS[2]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="others" name="Others" stroke={COLORS[3]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    {purposeKeys.map((key, i) => (
+                        <Line key={key} type="monotone" dataKey={key} name={key} stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                    ))}
                 </LineChart>
             </ResponsiveContainer>
         );
@@ -114,10 +113,9 @@ const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line") => {
                 <YAxis fontSize={11} tickLine={false} />
                 <Tooltip cursor={{ fill: "rgba(0, 0, 0, 0.05)" }} />
                 <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                <Bar dataKey="training" name="Training" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="coworking" name="Co-working" fill={COLORS[1]} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="conference_room" name="Conference Room" fill={COLORS[2]} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="others" name="Others" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
+                {purposeKeys.map((key, i) => (
+                    <Bar key={key} dataKey={key} name={key} fill={COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} />
+                ))}
             </BarChart>
         </ResponsiveContainer>
     );
@@ -217,7 +215,7 @@ const DictAnalytics = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[350px]">
-                                    {renderMonthlyPurposeChart(stats.purposeByMonth, chart3Type)}
+                                    {renderMonthlyPurposeChart(stats.purposeByMonth, chart3Type, stats.purposeKeys)}
                                 </div>
                             </CardContent>
                         </Card>

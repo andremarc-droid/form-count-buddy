@@ -21,7 +21,6 @@ import { useDictVisitorData } from "@/hooks/useDictVisitorData";
 import { toast } from "sonner";
 
 type Industry = Database["public"]["Enums"]["visitor_industry"];
-type Purpose = Database["public"]["Enums"]["visit_purpose"];
 type MarginalizedType = Database["public"]["Enums"]["marginalized_type"];
 
 const visitorSchema = z.object({
@@ -34,8 +33,7 @@ const visitorSchema = z.object({
   marginalized_type: z.enum(["pwd", "unemployed", "senior"] as const).optional(),
   academe_type: z.enum(["student", "instructor", "non_teaching_staff"] as const).optional(),
   government_position: z.string().max(200).optional(),
-  purpose: z.enum(["training", "coworking", "conference_room", "others"] as const),
-  purpose_detail: z.string().max(200).optional(),
+  purpose: z.string().min(1, "Purpose is required").max(200),
 });
 
 type VisitorFormData = z.infer<typeof visitorSchema>;
@@ -48,12 +46,7 @@ const industryLabels: Record<Industry, string> = {
   marginalized: "Marginalized Sector",
 };
 
-const purposeLabels: Record<Purpose, string> = {
-  training: "Training Room",
-  coworking: "Co-working Room",
-  conference_room: "Conference Room",
-  others: "Uban Pa/Others",
-};
+
 
 const marginalizedLabels: Record<MarginalizedType, string> = {
   pwd: "PWD",
@@ -95,7 +88,7 @@ const DictVisitorForm = () => {
   });
 
   const selectedIndustry = watch("industry");
-  const selectedPurpose = watch("purpose");
+
 
   const onSubmit = async (data: VisitorFormData) => {
     setIsSubmitting(true);
@@ -136,7 +129,6 @@ const DictVisitorForm = () => {
         academe_type: data.academe_type ?? null,
         government_position: data.government_position ?? null,
         purpose: data.purpose,
-        purpose_detail: data.purpose_detail ?? null,
       };
 
       await addDoc(collection(dictDb, "visitors"), {
@@ -338,27 +330,10 @@ const DictVisitorForm = () => {
 
               {/* Purpose */}
               <div className="space-y-2">
-                <Label>Facility to Use *</Label>
-                <Select onValueChange={(v) => setValue("purpose", v as Purpose)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select purpose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.keys(purposeLabels) as Purpose[]).map((key) => (
-                      <SelectItem key={key} value={key}>{purposeLabels[key]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="dict_purpose">Purpose *</Label>
+                <Input id="dict_purpose" placeholder="e.g., Meeting, Training, Inquiry" {...register("purpose")} />
                 {errors.purpose && <p className="text-sm text-destructive">{errors.purpose.message}</p>}
               </div>
-
-              {/* Purpose Detail */}
-              {selectedPurpose === "others" && (
-                <div className="space-y-2 animate-fade-in">
-                  <Label htmlFor="dict_purpose_detail">Please specify *</Label>
-                  <Input id="dict_purpose_detail" placeholder="Specify your purpose" {...register("purpose_detail")} />
-                </div>
-              )}
 
               {/* Date & Time (display only) */}
               <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">

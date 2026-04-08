@@ -133,18 +133,7 @@ const DictDashboard = () => {
             <SelectItem value="marginalized">Marginalized</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={purposeFilter} onValueChange={setPurposeFilter}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="All Purposes" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Purposes</SelectItem>
-            <SelectItem value="training">Training</SelectItem>
-            <SelectItem value="coworking">Co-working</SelectItem>
-            <SelectItem value="conference_room">Conference Room</SelectItem>
-            <SelectItem value="others">Others/Uban Pa</SelectItem>
-          </SelectContent>
-        </Select>
+
       </div>
 
       {/* Stat Cards */}
