@@ -1,24 +1,24 @@
 // TODO: Replace these imports with actual DICT assets when available
-import bgImage from "@/assets/DICT-background.jpg";
 import logoImage from "@/assets/DICT-Malaybalay.png";
+import bgImage from "@/assets/DICTbg.jpg";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDictVisitorData } from "@/hooks/useDictVisitorData";
 import type { Database } from "@/integrations/supabase/types";
 import { dictDb } from "@/lib/firebase-dict";
+import { isFuzzyMatch } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addDoc, collection, serverTimestamp, getDocs, query, where, Timestamp } from "firebase/firestore";
+import { addDoc, collection, getDocs, query, serverTimestamp, Timestamp, where } from "firebase/firestore";
 import { ArrowLeft, CheckCircle2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { z } from "zod";
-import { isFuzzyMatch } from "@/lib/utils";
-import { useDictVisitorData } from "@/hooks/useDictVisitorData";
 import { toast } from "sonner";
+import { z } from "zod";
 
 type Industry = Database["public"]["Enums"]["visitor_industry"];
 type MarginalizedType = Database["public"]["Enums"]["marginalized_type"];
@@ -96,7 +96,7 @@ const DictVisitorForm = () => {
       // Run smart duplicate check for today's entries
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
-      
+
       const todayEnd = new Date();
       todayEnd.setHours(23, 59, 59, 999);
 
@@ -105,7 +105,7 @@ const DictVisitorForm = () => {
         where("timestamp", ">=", Timestamp.fromDate(todayStart)),
         where("timestamp", "<=", Timestamp.fromDate(todayEnd))
       );
-      
+
       const snapshot = await getDocs(q);
       const existingTodayNames = snapshot.docs.map(doc => doc.data().full_name as string);
 

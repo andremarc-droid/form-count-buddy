@@ -1,6 +1,6 @@
 // TODO: Replace these imports with actual DICT assets when available
-import bgImage from "@/assets/DICT-background.jpg";
 import logo from "@/assets/DICT-Malaybalay.png";
+import bgImage from "@/assets/DICTbg.jpg";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

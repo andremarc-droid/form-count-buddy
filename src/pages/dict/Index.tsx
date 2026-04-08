@@ -1,7 +1,7 @@
 // TODO: Replace these imports with actual DICT assets when available
 // Drop your files into src/assets/ as DICTlogo.png and DICT.jpg, then update these imports
-import bgImage from "@/assets/DICT-background.jpg";
 import logoImage from "@/assets/DICT-Malaybalay.png";
+import bgImage from "@/assets/DICTbg.jpg";
 
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, LogOut, XCircle } from "lucide-react";
