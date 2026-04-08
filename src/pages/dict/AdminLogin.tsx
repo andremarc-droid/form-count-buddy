@@ -1,5 +1,5 @@
 // TODO: Replace these imports with actual DICT assets when available
-import bgImage from "@/assets/DTC.jpg"; // PLACEHOLDER — replace with: import bgImage from "@/assets/DICT.jpg"
+import bgImage from "@/assets/DICT-background.jpg";
 import logo from "@/assets/DICT-Malaybalay.png";
 
 import { Button } from "@/components/ui/button";

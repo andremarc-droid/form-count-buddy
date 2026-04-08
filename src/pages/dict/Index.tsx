@@ -1,6 +1,6 @@
 // TODO: Replace these imports with actual DICT assets when available
 // Drop your files into src/assets/ as DICTlogo.png and DICT.jpg, then update these imports
-import bgImage from "@/assets/DTC.jpg"; // PLACEHOLDER — replace with: import bgImage from "@/assets/DICT.jpg"
+import bgImage from "@/assets/DICT-background.jpg";
 import logoImage from "@/assets/DICT-Malaybalay.png";
 
 import { Button } from "@/components/ui/button";
