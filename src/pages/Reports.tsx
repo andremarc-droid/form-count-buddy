@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { VisitorRow } from "@/hooks/useVisitorData";
 import { computeStats, formatIndustryDetail, formatLabel, useVisitorData } from "@/hooks/useVisitorData";
-import { format } from "date-fns";
+import { endOfWeek, format, startOfWeek } from "date-fns";
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
 
@@ -15,6 +15,11 @@ const Reports = () => {
   const visitors = allVisitors.filter((v) => {
     if (reportType === "daily") {
       return v.visit_date === format(new Date(), "yyyy-MM-dd");
+    }
+    if (reportType === "weekly") {
+      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      return v.visit_date >= weekStart && v.visit_date <= weekEnd;
     }
     if (reportType === "monthly") {
       return v.visit_date.startsWith(format(new Date(), "yyyy-MM"));
@@ -85,6 +90,7 @@ const Reports = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="daily">Daily Summary</SelectItem>
+            <SelectItem value="weekly">Weekly Summary</SelectItem>
             <SelectItem value="monthly">Monthly Summary</SelectItem>
             <SelectItem value="industry">Industry Summary</SelectItem>
             <SelectItem value="all">All-Time Summary</SelectItem>
@@ -168,7 +174,7 @@ function generatePDFContent(
 ) {
   const reportDate = format(new Date(), "MMMM dd, yyyy");
   const reportTime = format(new Date(), "hh:mm a");
-  const reportLabel = reportType === "daily" ? "Daily" : reportType === "monthly" ? "Monthly" : reportType === "industry" ? "Industry" : "All-Time";
+  const reportLabel = reportType === "daily" ? "Daily" : reportType === "weekly" ? "Weekly" : reportType === "monthly" ? "Monthly" : reportType === "industry" ? "Industry" : "All-Time";
 
   return `
     <!DOCTYPE html>

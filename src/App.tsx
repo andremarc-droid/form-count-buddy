@@ -24,6 +24,8 @@ import DictDashboard from "./pages/dict/Dashboard";
 import DictIndex from "./pages/dict/Index";
 import DictReports from "./pages/dict/Reports";
 import DictVisitorForm from "./pages/dict/VisitorForm";
+import DictAttendance from "./pages/dict/Attendance";
+import DictAttendanceAdmin from "./pages/dict/AttendanceAdmin";
 
 // Favicons
 import dtcFavicon from "@/assets/DTClogo.png";
@@ -79,6 +81,7 @@ const App = () => (
           {/* ===== DICT Provincial Office Bukidnon Routes ===== */}
           <Route path="/dict" element={<DictIndex />} />
           <Route path="/dict/visitor-form" element={<DictVisitorForm />} />
+          <Route path="/dict/attendance" element={<DictAttendance />} />
           <Route path="/dict/admin/login" element={<DictAdminLogin />} />
           <Route path="/dict/admin" element={
             <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme-dict">
@@ -89,6 +92,7 @@ const App = () => (
             <Route path="visitors" element={<DictAdminVisitors />} />
             <Route path="analytics" element={<DictAnalytics />} />
             <Route path="reports" element={<DictReports />} />
+            <Route path="attendance" element={<DictAttendanceAdmin />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
