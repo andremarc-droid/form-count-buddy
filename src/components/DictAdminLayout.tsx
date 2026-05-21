@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { dictAuth } from "@/lib/firebase-dict";
 import { cn } from "@/lib/utils";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { FileText, LayoutDashboard, LineChart, LogOut, Moon, Sun, Users } from "lucide-react";
+import { FileText, LayoutDashboard, LineChart, LogOut, Moon, Sun, Users, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "./theme-provider";
@@ -15,6 +15,7 @@ import { useTheme } from "./theme-provider";
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dict/admin/dashboard" },
   { label: "Visitors", icon: Users, path: "/dict/admin/visitors" },
+  { label: "Attendance", icon: Clock, path: "/dict/admin/attendance" },
   { label: "Analytics", icon: LineChart, path: "/dict/admin/analytics" },
   { label: "Reports", icon: FileText, path: "/dict/admin/reports" },
 ];
