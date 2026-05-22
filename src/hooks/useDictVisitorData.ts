@@ -6,8 +6,6 @@ import { useEffect, useState } from "react";
 import { AttendanceRecord } from "@/types/attendance";
 
 export type DictVisitorRow = {
-
-export type DictVisitorRow = {
   id: string;
   full_name: string;
   age: number;
