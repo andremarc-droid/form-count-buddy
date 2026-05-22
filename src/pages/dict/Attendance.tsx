@@ -134,12 +134,6 @@ const Attendance = () => {
         style={{ backgroundImage: `url(${bgImage})` }}
       >
         <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-0"></div>
-        <Button asChild variant="outline" size="sm" className="absolute top-6 left-6 shadow-sm z-50">
-          <Link to="/dict">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
-          </Link>
-        </Button>
         <Card className="w-full max-w-md text-center animate-fade-in shadow-2xl z-10 bg-card/95 border-border/50 backdrop-blur-md rounded-3xl">
           <CardContent className="pt-10 pb-10">
             <CheckCircle2 className="mx-auto h-16 w-16 text-primary mb-4" />
@@ -174,13 +168,6 @@ const Attendance = () => {
     >
       <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-0 fixed"></div>
 
-      <Button asChild variant="outline" size="sm" className="absolute top-6 left-6 shadow-sm z-50 transition-all hover:bg-muted/60">
-        <Link to="/dict">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Link>
-      </Button>
-
       <div className="max-w-2xl mx-auto pt-10 sm:pt-6 relative z-10">
         <div className="flex flex-col items-center mb-8 animate-fade-in">
           <img src={logoImage} alt="DICT Logo" className="h-20 sm:h-24 md:h-28 w-auto mb-6 drop-shadow-md object-contain" />
@@ -197,7 +184,7 @@ const Attendance = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name *</Label>
-                <Input id="fullName" placeholder="Juan Dela Cruz" {...register("fullName")} />
+                <Input id="fullName" {...register("fullName")} />
                 {errors.fullName && <p className="text-sm text-destructive">{errors.fullName.message}</p>}
               </div>
 
