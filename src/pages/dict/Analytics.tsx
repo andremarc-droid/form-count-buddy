@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData";
-import { useEffect, useState } from "react";
+import { useEffect, useSearchParams, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { collection, onSnapshot } from "firebase/firestore";
 import { dictDb } from "@/lib/firebase-dict";
@@ -17,7 +16,6 @@ const COLORS = [
 ];
 
 const computeAttendanceStats = (records: AttendanceRecord[]) => {
-    // 1. Daily Attendance Count
     const dailyCounts: Record<string, Set<string>> = {};
     records.forEach(r => {
         if (r.status === "in") {
@@ -29,10 +27,7 @@ const computeAttendanceStats = (records: AttendanceRecord[]) => {
         .map(([date, set]) => ({ date, count: set.size }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-    // 2. Completion Rate
-    let completed = 0;
-    let stillIn = 0;
-    let missedOut = 0;
+    let completed = 0, stillIn = 0, missedOut = 0;
     records.forEach(r => {
         if (r.status === "out") completed++;
         else if (r.status === "in" && !r.timeOut) stillIn++;
@@ -44,7 +39,6 @@ const computeAttendanceStats = (records: AttendanceRecord[]) => {
         { name: "Missed Out", value: missedOut },
     ];
 
-    // 3. Peak Hours
     const hourCounts = new Array(24).fill(0);
     records.forEach(r => {
         if (r.timeIn) {
@@ -57,17 +51,13 @@ const computeAttendanceStats = (records: AttendanceRecord[]) => {
         const ampm = i < 12 ? "AM" : "PM";
         return `${hour} ${ampm}`;
     });
-    const peakHoursData = hourCounts.map((count, i) => ({
-        hour: hourLabels[i],
-        count
-    }));
+    const peakHoursData = hourCounts.map((count, i) => ({ hour: hourLabels[i], count }));
 
     return { dailyData, completionData, peakHoursData };
 };
 
 const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey: string, valueKey: string, isVerticalBar: boolean = false) => {
     if (data.length === 0) return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
-
     if (type === "bar") {
         if (isVerticalBar) {
             return (
@@ -85,21 +75,19 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
                     </BarChart>
                 </ResponsiveContainer>
             );
-        } else {
-            return (
-                <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                        <XAxis dataKey={nameKey} fontSize={11} tickLine={false} interval={0} />
-                        <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey={valueKey} fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-            );
         }
+        return (
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
+                    <XAxis dataKey={nameKey} fontSize={11} tickLine={false} interval={0} />
+                    <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey={valueKey} fill="hsl(215, 75%, 45%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+        );
     }
-
     if (type === "line") {
         return (
             <ResponsiveContainer width="100%" height="100%">
@@ -113,20 +101,11 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
             </ResponsiveContainer>
         );
     }
-
     return (
         <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-                <Pie
-                    data={data}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={4}
-                    dataKey={valueKey}
-                    label={({ name, percent }) => percent ? `${name} (${(percent * 100).toFixed(0)}%)` : `${name}`}
-                >
+                <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={4} dataKey={valueKey}
+                    label={({ name, percent }) => percent ? `${name} (${(percent * 100).toFixed(0)}%)` : `${name}`}>
                     {data.map((_, i) => (
                         <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
                     ))}
@@ -139,7 +118,6 @@ const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey:
 
 const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line", purposeKeys: string[]) => {
     if (data.length === 0) return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
-
     if (type === "line") {
         return (
             <ResponsiveContainer width="100%" height="100%">
@@ -156,7 +134,6 @@ const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line", purposeKey
             </ResponsiveContainer>
         );
     }
-
     return (
         <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 20 }}>
@@ -200,172 +177,183 @@ const DictAnalytics = () => {
 
     const isLoading = visitorsLoading || attendanceLoading;
 
-    return (
-        <>
-            <div className="page-header mb-8">
-                <h1 className="page-title text-3xl font-heading font-bold text-foreground">Industry Analytics</h1>
-                <p className="page-subtitle text-muted-foreground mt-1">DICT Provincial Office — Deep dive into visitor patterns and industry trends</p>
-            </div>
+    const [searchParams] = useSearchParams();
+    const activeTab = (searchParams.get("tab") as "attendance" | "visitors") || "attendance";
 
-            {isLoading ? (
+    const pageHeader = (
+        <div className="page-header mb-8">
+            <h1 className="page-title text-3xl font-heading font-bold text-foreground">Industry Analytics</h1>
+            <p className="page-subtitle text-muted-foreground mt-1">DICT Provincial Office — Deep dive into visitor patterns and industry trends</p>
+        </div>
+    );
+
+    if (isLoading) {
+        return (
+            <>
+                {pageHeader}
                 <div className="flex items-center justify-center p-12 text-muted-foreground animate-pulse">
                     Loading analytics data...
                 </div>
-            ) : (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* 1. Number of visitors per industry */}
-                        <Card>
-                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
-                                <div>
-                                    <CardTitle className="font-heading text-lg">Visitors per Industry</CardTitle>
-                                    <CardDescription>Absolute number of visitors by sector</CardDescription>
-                                </div>
-                                <Select value={chart1Type} onValueChange={(v: "pie" | "bar" | "line") => setChart1Type(v)}>
-                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
-                                        <SelectValue placeholder="Chart Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="pie">Pie Chart</SelectItem>
-                                        <SelectItem value="bar">Bar Graph</SelectItem>
-                                        <SelectItem value="line">Line Graph</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[300px]">
-                                    {renderStandardChart(stats.industryData, chart1Type, "name", "value", true)}
-                                </div>
-                            </CardContent>
-                        </Card>
+            </>
+        );
+    }
 
-                        {/* 2. Percentage distribution by industry */}
-                        <Card>
-                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
-                                <div>
-                                    <CardTitle className="font-heading text-lg">Industry Distribution</CardTitle>
-                                    <CardDescription>Percentage share by sector</CardDescription>
-                                </div>
-                                <Select value={chart2Type} onValueChange={(v: "pie" | "bar" | "line") => setChart2Type(v)}>
-                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
-                                        <SelectValue placeholder="Chart Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="pie">Pie Chart</SelectItem>
-                                        <SelectItem value="bar">Bar Graph</SelectItem>
-                                        <SelectItem value="line">Line Graph</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[300px]">
-                                    {renderStandardChart(stats.industryData, chart2Type, "name", "value", false)}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* 3. Monthly Purpose Distribution */}
-                        <Card>
-                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
-                                <div>
-                                    <CardTitle className="font-heading text-lg">Monthly Purpose Distribution</CardTitle>
-                                    <CardDescription>Breakdown of visit purposes over time</CardDescription>
-                                </div>
-                                <Select value={chart3Type} onValueChange={(v: "bar" | "line") => setChart3Type(v)}>
-                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
-                                        <SelectValue placeholder="Chart Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="bar">Bar Graph</SelectItem>
-                                        <SelectItem value="line">Line Graph</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[350px]">
-                                    {renderMonthlyPurposeChart(stats.purposeByMonth, chart3Type, stats.purposeKeys)}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* 4. Top Occupations */}
-                        <Card>
-                            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
-                                <div>
-                                    <CardTitle className="font-heading text-lg">Top Occupations & Organizations</CardTitle>
-                                    <CardDescription>Most frequent visitor backgrounds</CardDescription>
-                                </div>
-                                <Select value={chart4Type} onValueChange={(v: "pie" | "bar" | "line") => setChart4Type(v)}>
-                                    <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
-                                        <SelectValue placeholder="Chart Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="pie">Pie Chart</SelectItem>
-                                        <SelectItem value="bar">Bar Graph</SelectItem>
-                                        <SelectItem value="line">Line Graph</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="h-[350px]">
-                                    {renderStandardChart(stats.topOccupations, chart4Type, "name", "count", true)}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="pt-8 space-y-6">
-                        <div className="border-t pt-8">
-                            <h2 className="text-2xl font-heading font-bold text-foreground mb-2">Attendance Analytics</h2>
-                            <p className="text-muted-foreground mb-6">Insights into daily attendance patterns and completion rates</p>
+    return (
+        <>
+            {pageHeader}
+            {activeTab !== "attendance" && (
+            <div className="space-y-6">
+                {/* 1. Number of visitors per industry */}
+                <Card>
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
+                        <div>
+                            <CardTitle className="font-heading text-lg">Visitors per Industry</CardTitle>
+                            <CardDescription>Absolute number of visitors by sector</CardDescription>
                         </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Chart 1: Daily Attendance */}
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="font-heading text-lg">Daily Attendance Count</CardTitle>
-                                    <CardDescription>Unique people who logged in per day</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="h-[300px]">
-                                        {renderStandardChart(attendanceStats.dailyData, "bar", "date", "count")}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Chart 2: Completion Rate */}
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="font-heading text-lg">Attendance Completion Rate</CardTitle>
-                                    <CardDescription>Ratio of completed vs incomplete vs missed records</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="h-[300px]">
-                                        {renderStandardChart(attendanceStats.completionData, "pie", "name", "value")}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                        <Select value={chart1Type} onValueChange={(v: "pie" | "bar" | "line") => setChart1Type(v)}>
+                            <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
+                                <SelectValue placeholder="Chart Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="pie">Pie Chart</SelectItem>
+                                <SelectItem value="bar">Bar Graph</SelectItem>
+                                <SelectItem value="line">Line Graph</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[300px]">
+                            {renderStandardChart(stats.industryData, chart1Type, "name", "value", true)}
                         </div>
+                    </CardContent>
+                </Card>
 
-                        <div className="grid grid-cols-1 gap-6">
-                            {/* Chart 3: Peak Hours */}
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="font-heading text-lg">Peak Arrival Hours</CardTitle>
-                                    <CardDescription>Distribution of time-in events across the day</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="h-[300px]">
-                                        {renderStandardChart(attendanceStats.peakHoursData, "bar", "hour", "count")}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                {/* 2. Percentage distribution by industry */}
+                <Card>
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
+                        <div>
+                            <CardTitle className="font-heading text-lg">Industry Distribution</CardTitle>
+                            <CardDescription>Percentage share by sector</CardDescription>
                         </div>
-                    </div>
+                        <Select value={chart2Type} onValueChange={(v: "pie" | "bar" | "line") => setChart2Type(v)}>
+                            <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
+                                <SelectValue placeholder="Chart Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="pie">Pie Chart</SelectItem>
+                                <SelectItem value="bar">Bar Graph</SelectItem>
+                                <SelectItem value="line">Line Graph</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[300px]">
+                            {renderStandardChart(stats.industryData, chart2Type, "name", "value", false)}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* 3. Monthly Purpose Distribution */}
+                <Card>
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
+                        <div>
+                            <CardTitle className="font-heading text-lg">Monthly Purpose Distribution</CardTitle>
+                            <CardDescription>Breakdown of visit purposes over time</CardDescription>
+                        </div>
+                        <Select value={chart3Type} onValueChange={(v: "bar" | "line") => setChart3Type(v)}>
+                            <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
+                                <SelectValue placeholder="Chart Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="bar">Bar Graph</SelectItem>
+                                <SelectItem value="line">Line Graph</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[350px]">
+                            {renderMonthlyPurposeChart(stats.purposeByMonth, chart3Type, stats.purposeKeys)}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* 4. Top Occupations */}
+                <Card>
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 pb-2">
+                        <div>
+                            <CardTitle className="font-heading text-lg">Top Occupations &amp; Organizations</CardTitle>
+                            <CardDescription>Most frequent visitor backgrounds</CardDescription>
+                        </div>
+                        <Select value={chart4Type} onValueChange={(v: "pie" | "bar" | "line") => setChart4Type(v)}>
+                            <SelectTrigger className="w-full sm:w-[130px] h-8 text-xs">
+                                <SelectValue placeholder="Chart Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="pie">Pie Chart</SelectItem>
+                                <SelectItem value="bar">Bar Graph</SelectItem>
+                                <SelectItem value="line">Line Graph</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[350px]">
+                            {renderStandardChart(stats.topOccupations, chart4Type, "name", "count", true)}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+            )}
+
+            {activeTab === "attendance" && (
+            <div className="pt-8 space-y-6">
+                <div className="border-t pt-8">
+                    <h2 className="text-2xl font-heading font-bold text-foreground mb-2">Attendance Analytics</h2>
+                    <p className="text-muted-foreground mb-6">Insights into daily attendance patterns and completion rates</p>
                 </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Chart 1: Daily Attendance */}
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="font-heading text-lg">Daily Attendance Count</CardTitle>
+                            <CardDescription>Unique people who logged in per day</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[300px]">
+                                {renderStandardChart(attendanceStats.dailyData, "bar", "date", "count")}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Chart 2: Completion Rate */}
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="font-heading text-lg">Attendance Completion Rate</CardTitle>
+                            <CardDescription>Ratio of completed vs incomplete vs missed records</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[300px]">
+                                {renderStandardChart(attendanceStats.completionData, "pie", "name", "value")}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                    {/* Chart 3: Peak Hours */}
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="font-heading text-lg">Peak Arrival Hours</CardTitle>
+                            <CardDescription>Distribution of time-in events across the day</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-[300px]">
+                                {renderStandardChart(attendanceStats.peakHoursData, "bar", "hour", "count")}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
             )}
         </>
     );

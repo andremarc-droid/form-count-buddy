@@ -24,7 +24,7 @@ const DictAdminLogin = () => {
 
     try {
       await signInWithEmailAndPassword(dictAuth, email, password);
-      navigate("/dict/admin/dashboard?tab=attendance");
+      navigate("/dict/admin/dashboard");
     } catch (error: any) {
       const code = error?.code;
       if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") {
