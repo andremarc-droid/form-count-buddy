@@ -2,7 +2,7 @@ import { dictDb } from "@/lib/firebase-dict";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AttendanceRecord } from "@/types/attendance";
 
 export type DictVisitorRow = {
@@ -23,9 +23,9 @@ export type DictVisitorRow = {
 };
 
 export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [attendance, setAttendance] = React.useState<AttendanceRecord[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const q = collection(dictDb, "dict_attendance");
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
