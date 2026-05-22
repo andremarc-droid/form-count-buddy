@@ -9,7 +9,7 @@ import { Download, FileText } from "lucide-react";
 import { useState } from "react";
 
 const DictReports = () => {
-  const { data: allVisitors = [], isLoading } = useDictVisitorData();
+  const { data: allVisitors = [], attendance = [], isLoading } = useDictVisitorData();
   const [reportType, setReportType] = useState("daily");
 
   const visitors = allVisitors.filter((v) => {
@@ -27,8 +27,21 @@ const DictReports = () => {
     return true;
   });
 
-  const stats = computeDictStats(visitors);
-  const globalStats = computeDictStats(allVisitors);
+  const stats = computeDictStats(visitors, attendance);
+  const globalStats = computeDictStats(allVisitors, attendance);
+
+  const attendanceStats = {
+    today: attendance.filter(a => a.date === format(new Date(), "yyyy-MM-dd")).length,
+    weekly: attendance.filter(a => {
+      const start = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      const end = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+      return a.date >= start && a.date <= end;
+    }).length,
+    monthly: attendance.filter(a => a.date.startsWith(format(new Date(), "yyyy-MM"))).length,
+    total: attendance.length,
+    missedOut: attendance.filter(a => a.missedOut).length,
+    completionRate: attendance.length ? Math.round((attendance.filter(a => a.status === "out").length / attendance.length) * 100) : 0,
+  };
 
   const exportCSV = () => {
     const headers = ["Full Name", "Age", "Gender", "Industry", "Detail", "Location", "Purpose", "Date"];
@@ -159,6 +172,39 @@ const DictReports = () => {
                 </div>
               ))
             )}
+          </CardContent>
+        </Card>
+
+        {/* Attendance Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">Attendance Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Today</span>
+              <span className="font-semibold">{attendanceStats.today}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">This Week</span>
+              <span className="font-semibold">{attendanceStats.weekly}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">This Month</span>
+              <span className="font-semibold">{attendanceStats.monthly}</span>
+            </div>
+            <div className="flex justify-between border-t pt-3">
+              <span className="text-muted-foreground font-medium">Total Records</span>
+              <span className="font-bold">{attendanceStats.total}</span>
+            </div>
+            <div className="flex justify-between text-destructive">
+              <span className="text-muted-foreground">Missed Out</span>
+              <span className="font-semibold">{attendanceStats.missedOut}</span>
+            </div>
+            <div className="flex justify-between text-primary">
+              <span className="text-muted-foreground">Completion Rate</span>
+              <span className="font-bold">{attendanceStats.completionRate}%</span>
+            </div>
           </CardContent>
         </Card>
       </div>

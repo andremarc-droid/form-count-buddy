@@ -80,7 +80,7 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
 };
 
 const DictDashboard = () => {
-  const { data: visitors = [], isLoading } = useDictVisitorData();
+  const { data: visitors = [], attendance = [], isLoading } = useDictVisitorData();
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [purposeFilter, setPurposeFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -100,7 +100,7 @@ const DictDashboard = () => {
     return true;
   });
 
-  const stats = computeDictStats(filtered);
+  const stats = computeDictStats(filtered, attendance);
 
   const statCards = [
     { label: "Today", value: stats.daily, icon: Activity, color: "text-primary" },

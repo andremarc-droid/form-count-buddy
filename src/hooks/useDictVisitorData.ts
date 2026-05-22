@@ -1,7 +1,11 @@
 import { dictDb } from "@/lib/firebase-dict";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
-import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { AttendanceRecord } from "@/types/attendance";
+
+export type DictVisitorRow = {
 
 export type DictVisitorRow = {
   id: string;
@@ -21,7 +25,21 @@ export type DictVisitorRow = {
 };
 
 export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
-  return useQuery({
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+
+  useEffect(() => {
+    const q = collection(dictDb, "dict_attendance");
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as AttendanceRecord[];
+      setAttendance(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const query = useQuery({
     queryKey: ["dict-visitors", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
       const visitorsRef = collection(dictDb, "visitors");
@@ -53,6 +71,12 @@ export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
       return rows;
     },
   });
+
+  return {
+    ...query,
+    data: query.data,
+    attendance,
+  };
 }
 
 export type DictVisitorFormData = Omit<DictVisitorRow, "id" | "visit_date" | "visit_time" | "created_at">;
@@ -114,16 +138,19 @@ export function useDictBulkDeleteVisitors() {
   });
 }
 
-export function computeDictStats(data: DictVisitorRow[]) {
+export function computeDictStats(data: DictVisitorRow[], attendance: AttendanceRecord[] = []) {
   const today = format(new Date(), "yyyy-MM-dd");
   const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-  const daily = data.filter((v) => v.visit_date === today).length;
-  const weekly = data.filter((v) => v.visit_date >= weekStart && v.visit_date <= weekEnd).length;
-  const monthly = data.filter((v) => v.visit_date >= monthStart && v.visit_date <= monthEnd).length;
+  const daily = data.filter((v) => v.visit_date === today).length +
+                attendance.filter((a) => a.date === today).length;
+  const weekly = data.filter((v) => v.visit_date >= weekStart && v.visit_date <= weekEnd).length +
+                 attendance.filter((a) => a.date >= weekStart && a.date <= weekEnd).length;
+  const monthly = data.filter((v) => v.visit_date >= monthStart && v.visit_date <= monthEnd).length +
+                  attendance.filter((a) => a.date >= monthStart && a.date <= monthEnd).length;
 
   // Industry distribution
   const industryCount: Record<string, number> = {};
@@ -165,7 +192,8 @@ export function computeDictStats(data: DictVisitorRow[]) {
     const d = format(addDays(startDate, i), "yyyy-MM-dd");
     dailyTrend.push({
       date: format(parseISO(d), "MMM dd"),
-      count: data.filter((v) => v.visit_date === d).length,
+      count: data.filter((v) => v.visit_date === d).length +
+             attendance.filter((a) => a.date === d).length,
     });
   }
 
@@ -177,10 +205,11 @@ export function computeDictStats(data: DictVisitorRow[]) {
     const label = format(wDate, "MMM dd");
     const endWDate = format(addDays(wDate, 6), "yyyy-MM-dd");
     const startWStr = format(wDate, "yyyy-MM-dd");
-    
+
     weeklyTrend.push({
       date: label,
-      count: data.filter((v) => v.visit_date >= startWStr && v.visit_date <= endWDate).length,
+      count: data.filter((v) => v.visit_date >= startWStr && v.visit_date <= endWDate).length +
+             attendance.filter((a) => a.date >= startWStr && a.date <= endWDate).length,
     });
   }
 
@@ -196,7 +225,8 @@ export function computeDictStats(data: DictVisitorRow[]) {
     if (!monthlyTrend.find(m => m.date === label)) {
       monthlyTrend.push({
         date: label,
-        count: data.filter((v) => v.visit_date >= startMStr && v.visit_date <= endMDate).length,
+        count: data.filter((v) => v.visit_date >= startMStr && v.visit_date <= endMDate).length +
+               attendance.filter((a) => a.date >= startMStr && a.date <= endMDate).length,
       });
     }
   }
@@ -236,7 +266,7 @@ export function computeDictStats(data: DictVisitorRow[]) {
     .slice(0, 10)
     .map(([name, count]) => ({ name, count }));
 
-  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, purposeKeys, topOccupations };
+  return { daily, weekly, monthly, total: data.length + attendance.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, purposeKeys, topOccupations };
 }
 
 export function formatDictLabel(key: string): string {
