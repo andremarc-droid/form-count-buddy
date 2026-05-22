@@ -37,42 +37,39 @@ export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
     return () => unsubscribe();
   }, []);
 
-  const query = useQuery({
+  const visitorsQuery = useQuery({
     queryKey: ["dict-visitors", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
       const visitorsRef = collection(dictDb, "visitors");
       const q = query(visitorsRef, orderBy("timestamp", "desc"));
       const snapshot = await getDocs(q);
-
-      const rows: DictVisitorRow[] = snapshot.docs.map((doc) => {
-        const d = doc.data();
-        const ts = d.timestamp?.toDate ? d.timestamp.toDate() : new Date();
+      return snapshot.docs.map((doc) => {
+        const data = doc.data() as DictVisitorRow & { timestamp: unknown };
+        const ts = (data.timestamp as { toDate?: () => Date })?.toDate?.() ?? new Date();
 
         return {
           id: doc.id,
-          full_name: d.full_name ?? "",
-          age: d.age ?? 0,
-          gender: d.gender ?? "",
-          industry: d.industry ?? "",
-          industry_detail: d.industry_detail ?? null,
-          industry_location: d.industry_location ?? null,
-          marginalized_type: d.marginalized_type ?? null,
-          academe_type: d.academe_type ?? null,
-          government_position: d.government_position ?? null,
-          purpose: d.purpose ?? "",
+          full_name: data.full_name ?? "",
+          age: data.age ?? 0,
+          gender: data.gender ?? "",
+          industry: data.industry ?? "",
+          industry_detail: data.industry_detail ?? null,
+          industry_location: data.industry_location ?? null,
+          marginalized_type: data.marginalized_type ?? null,
+          academe_type: data.academe_type ?? null,
+          government_position: data.government_position ?? null,
+          purpose: data.purpose ?? "",
           visit_date: format(ts, "yyyy-MM-dd"),
           visit_time: format(ts, "HH:mm:ss"),
           created_at: ts.toISOString(),
         };
       });
-
-      return rows;
     },
   });
 
   return {
-    ...query,
-    data: query.data,
+    ...visitorsQuery,
+    data: visitorsQuery.data,
     attendance,
   };
 }
@@ -143,12 +140,9 @@ export function computeDictStats(data: DictVisitorRow[], attendance: AttendanceR
   const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
 
-  const daily = data.filter((v) => v.visit_date === today).length +
-                attendance.filter((a) => a.date === today).length;
-  const weekly = data.filter((v) => v.visit_date >= weekStart && v.visit_date <= weekEnd).length +
-                 attendance.filter((a) => a.date >= weekStart && a.date <= weekEnd).length;
-  const monthly = data.filter((v) => v.visit_date >= monthStart && v.visit_date <= monthEnd).length +
-                  attendance.filter((a) => a.date >= monthStart && a.date <= monthEnd).length;
+  const daily = data.filter((v) => v.visit_date === today).length;
+  const weekly = data.filter((v) => v.visit_date >= weekStart && v.visit_date <= weekEnd).length;
+  const monthly = data.filter((v) => v.visit_date >= monthStart && v.visit_date <= monthEnd).length;
 
   // Industry distribution
   const industryCount: Record<string, number> = {};
@@ -190,14 +184,13 @@ export function computeDictStats(data: DictVisitorRow[], attendance: AttendanceR
     const d = format(addDays(startDate, i), "yyyy-MM-dd");
     dailyTrend.push({
       date: format(parseISO(d), "MMM dd"),
-      count: data.filter((v) => v.visit_date === d).length +
-             attendance.filter((a) => a.date === d).length,
+      count: data.filter((v) => v.visit_date === d).length,
     });
   }
 
   // Weekly trend (last 12 weeks from startDate)
   const weeklyTrend: { date: string; count: number }[] = [];
-  let currentStartW = startOfWeek(startDate, { weekStartsOn: 1 });
+  const currentStartW = startOfWeek(startDate, { weekStartsOn: 1 });
   for (let i = 0; i < 12; i++) {
     const wDate = addDays(currentStartW, i * 7);
     const label = format(wDate, "MMM dd");
@@ -206,14 +199,13 @@ export function computeDictStats(data: DictVisitorRow[], attendance: AttendanceR
 
     weeklyTrend.push({
       date: label,
-      count: data.filter((v) => v.visit_date >= startWStr && v.visit_date <= endWDate).length +
-             attendance.filter((a) => a.date >= startWStr && a.date <= endWDate).length,
+      count: data.filter((v) => v.visit_date >= startWStr && v.visit_date <= endWDate).length,
     });
   }
 
   // Monthly trend (last 12 months from startDate)
   const monthlyTrend: { date: string; count: number }[] = [];
-  let currentStartM = startOfMonth(startDate);
+  const currentStartM = startOfMonth(startDate);
   for (let i = 0; i < 12; i++) {
     const mDate = startOfMonth(addDays(currentStartM, i * 32));
     const label = format(mDate, "MMM yyyy");
@@ -223,8 +215,7 @@ export function computeDictStats(data: DictVisitorRow[], attendance: AttendanceR
     if (!monthlyTrend.find(m => m.date === label)) {
       monthlyTrend.push({
         date: label,
-        count: data.filter((v) => v.visit_date >= startMStr && v.visit_date <= endMDate).length +
-               attendance.filter((a) => a.date >= startMStr && a.date <= endMDate).length,
+        count: data.filter((v) => v.visit_date >= startMStr && v.visit_date <= endMDate).length,
       });
     }
   }
@@ -264,7 +255,7 @@ export function computeDictStats(data: DictVisitorRow[], attendance: AttendanceR
     .slice(0, 10)
     .map(([name, count]) => ({ name, count }));
 
-  return { daily, weekly, monthly, total: data.length + attendance.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, purposeKeys, topOccupations };
+  return { daily, weekly, monthly, total: data.length, industryData, purposeData, dailyTrend, weeklyTrend, monthlyTrend, purposeByMonth, purposeKeys, topOccupations };
 }
 
 export function formatDictLabel(key: string): string {
