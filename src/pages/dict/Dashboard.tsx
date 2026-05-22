@@ -70,7 +70,7 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
           outerRadius={100}
           paddingAngle={4}
           dataKey="value"
-          label={({ name, percentage }) => `${name} (${percentage}%)`}
+          label={false}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={`hsl(${COLORS[i % COLORS.length]})`} />
@@ -357,7 +357,7 @@ const DictDashboard = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={attendDailyTrend}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 20%, 90%)" />
-                      <XAxis dataKey="date" fontSize={11} tickLine={false} interval={0} />
+                      <XAxis dataKey="date" fontSize={9} tickLine={false} interval={0} angle={-45} textAnchor="end" height={60} />
                       <YAxis fontSize={11} tickLine={false} allowDecimals={false} />
                       <Tooltip />
                       <Bar dataKey="count" fill="hsl(150, 60%, 42%)" radius={[4, 4, 0, 0]} />
