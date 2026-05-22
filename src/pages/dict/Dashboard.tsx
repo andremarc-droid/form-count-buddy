@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData";
-import { Activity, CalendarDays, TrendingUp, Users } from "lucide-react";
-import { useState } from "react";
+import { Activity, CalendarDays, ClipboardCheck, TrendingUp, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { collection, getFirestore, onSnapshot } from "firebase/firestore";
+import { addDays, endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -81,6 +83,34 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
 
 const DictDashboard = () => {
   const { data: visitors = [], attendance = [], isLoading } = useDictVisitorData();
+
+  const [attend, setAttend] = useState<Array<{ id: string; [key: string]: unknown }>>([]);
+  useEffect(() => {
+    const db = getFirestore();
+    const ref = collection(db, "dict_attendance");
+    const unsub = onSnapshot(ref, (snap) => {
+      setAttend(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, []);
+
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
+
+  const todayAttendance = attend.filter((a) => (a.date as string) === todayStr).length;
+  const thisWeekAttendance = attend.filter((a) => {
+    const d = a.date as string;
+    return d >= weekStart && d <= weekEnd;
+  }).length;
+  const thisMonthAttendance = attend.filter((a) => {
+    const d = a.date as string;
+    return d >= monthStart && d <= monthEnd;
+  }).length;
+  const totalAttendance = attend.length;
+
   const [industryFilter, setIndustryFilter] = useState<string>("all");
   const [purposeFilter, setPurposeFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -136,7 +166,7 @@ const DictDashboard = () => {
 
       </div>
 
-      {/* Stat Cards */}
+       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((s) => (
           <div key={s.label} className="stat-card animate-fade-in shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-l-4" style={{ borderLeftColor: `hsl(var(--${s.color.split("-")[1]}))` }}>
@@ -146,6 +176,27 @@ const DictDashboard = () => {
             </div>
             <p className="text-3xl font-heading font-bold text-foreground">
               {isLoading ? "—" : s.value.toLocaleString()}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Attendance Overview */}
+      <p className="text-sm font-semibold text-foreground mb-3">Attendance Overview</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: "Today", value: todayAttendance },
+          { label: "This Week", value: thisWeekAttendance },
+          { label: "This Month", value: thisMonthAttendance },
+          { label: "Total Attendance", value: totalAttendance },
+        ].map((s) => (
+          <div key={s.label} className="stat-card animate-fade-in shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-l-4" style={{ borderLeftColor: "hsl(var(--green-500))" }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">{s.label}</span>
+              <ClipboardCheck className="h-5 w-5" style={{ color: "hsl(var(--green-500))" }} />
+            </div>
+            <p className="text-3xl font-heading font-bold text-foreground">
+              {s.value.toLocaleString()}
             </p>
           </div>
         ))}
