@@ -33,6 +33,8 @@ export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
         ...doc.data(),
       })) as AttendanceRecord[];
       setAttendance(data);
+    }, (err) => {
+      console.log("Attendance collection unavailable");
     });
     return () => unsubscribe();
   }, []);
@@ -40,30 +42,35 @@ export function useDictVisitorData(dateRange?: { from: Date; to: Date }) {
   const visitorsQuery = useQuery({
     queryKey: ["dict-visitors", dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
-      const visitorsRef = collection(dictDb, "visitors");
-      const q = query(visitorsRef, orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map((doc) => {
-        const data = doc.data() as DictVisitorRow & { timestamp: unknown };
-        const ts = (data.timestamp as { toDate?: () => Date })?.toDate?.() ?? new Date();
+      try {
+        const visitorsRef = collection(dictDb, "visitors");
+        const q = query(visitorsRef, orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map((doc) => {
+          const data = doc.data() as DictVisitorRow & { timestamp: unknown };
+          const ts = (data.timestamp as { toDate?: () => Date })?.toDate?.() ?? new Date();
 
-        return {
-          id: doc.id,
-          full_name: data.full_name ?? "",
-          age: data.age ?? 0,
-          gender: data.gender ?? "",
-          industry: data.industry ?? "",
-          industry_detail: data.industry_detail ?? null,
-          industry_location: data.industry_location ?? null,
-          marginalized_type: data.marginalized_type ?? null,
-          academe_type: data.academe_type ?? null,
-          government_position: data.government_position ?? null,
-          purpose: data.purpose ?? "",
-          visit_date: format(ts, "yyyy-MM-dd"),
-          visit_time: format(ts, "HH:mm:ss"),
-          created_at: ts.toISOString(),
-        };
-      });
+          return {
+            id: doc.id,
+            full_name: data.full_name ?? "",
+            age: data.age ?? 0,
+            gender: data.gender ?? "",
+            industry: data.industry ?? "",
+            industry_detail: data.industry_detail ?? null,
+            industry_location: data.industry_location ?? null,
+            marginalized_type: data.marginalized_type ?? null,
+            academe_type: data.academe_type ?? null,
+            government_position: data.government_position ?? null,
+            purpose: data.purpose ?? "",
+            visit_date: format(ts, "yyyy-MM-dd"),
+            visit_time: format(ts, "HH:mm:ss"),
+            created_at: ts.toISOString(),
+          };
+        });
+      } catch (error) {
+        console.log("Visitor collection unavailable");
+        return [];
+      }
     },
   });
 

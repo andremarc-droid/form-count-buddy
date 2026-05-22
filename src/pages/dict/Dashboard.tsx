@@ -95,6 +95,8 @@ const DictDashboard = () => {
     const ref = collection(db, "dict_attendance");
     const unsub = onSnapshot(ref, (snap) => {
       setAttend(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      console.log("Dashboard attendance collection unavailable");
     });
     return () => unsub();
   }, []);
