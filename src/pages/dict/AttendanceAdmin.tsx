@@ -14,18 +14,11 @@ import { dictDb } from "@/lib/firebase-dict";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-
-interface AttendanceRecord {
-  id: string;
-  fullName: string;
-  fullNameLower: string;
-  date: string;
-  timeIn: any; // Timestamp
-  timeOut: any; // Timestamp | null
-  status: "in" | "out";
-  missedOut: boolean;
-  createdAt: any;
-}
+import { Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DictAttendanceFormDialog } from "@/components/DictAttendanceFormDialog";
+import { DictDeleteAttendanceDialog } from "@/components/DictDeleteAttendanceDialog";
+import { AttendanceRecord } from "@/types/attendance";
 
 const DictAttendanceAdmin = () => {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
@@ -33,6 +26,11 @@ const DictAttendanceAdmin = () => {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // Dialog state
+  const [formOpen, setFormOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<AttendanceRecord | null>(null);
 
   useEffect(() => {
     const q = query(collection(dictDb, "dict_attendance"), orderBy("createdAt", "desc"));
@@ -74,6 +72,16 @@ const DictAttendanceAdmin = () => {
     } catch {
       return dateString;
     }
+  };
+
+  const handleEdit = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setFormOpen(true);
+  };
+
+  const handleDelete = (record: AttendanceRecord) => {
+    setSelectedRecord(record);
+    setDeleteOpen(true);
   };
 
   return (
@@ -123,16 +131,17 @@ const DictAttendanceAdmin = () => {
               <TableHead>Time Out</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Alerts</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No attendance records found</TableCell>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No attendance records found</TableCell>
               </TableRow>
             ) : (
               filtered.map((r) => (
@@ -156,12 +165,46 @@ const DictAttendanceAdmin = () => {
                       </Badge>
                     )}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEdit(r)}
+                        title="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(r)}
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <DictAttendanceFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        record={selectedRecord}
+      />
+
+      <DictDeleteAttendanceDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        record={selectedRecord}
+      />
     </>
   );
 };

@@ -2,8 +2,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { collection, onSnapshot } from "firebase/firestore";
+import { dictDb } from "@/lib/firebase-dict";
+import { AttendanceRecord } from "@/types/attendance";
 
 const COLORS = [
     "hsl(215, 75%, 45%)",
@@ -12,6 +15,55 @@ const COLORS = [
     "hsl(280, 60%, 50%)",
     "hsl(0, 72%, 51%)",
 ];
+
+const computeAttendanceStats = (records: AttendanceRecord[]) => {
+    // 1. Daily Attendance Count
+    const dailyCounts: Record<string, Set<string>> = {};
+    records.forEach(r => {
+        if (r.status === "in") {
+            if (!dailyCounts[r.date]) dailyCounts[r.date] = new Set();
+            dailyCounts[r.date].add(r.fullNameLower);
+        }
+    });
+    const dailyData = Object.entries(dailyCounts)
+        .map(([date, set]) => ({ date, count: set.size }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+    // 2. Completion Rate
+    let completed = 0;
+    let stillIn = 0;
+    let missedOut = 0;
+    records.forEach(r => {
+        if (r.status === "out") completed++;
+        else if (r.status === "in" && !r.timeOut) stillIn++;
+        if (r.missedOut) missedOut++;
+    });
+    const completionData = [
+        { name: "Completed", value: completed },
+        { name: "Still In", value: stillIn },
+        { name: "Missed Out", value: missedOut },
+    ];
+
+    // 3. Peak Hours
+    const hourCounts = new Array(24).fill(0);
+    records.forEach(r => {
+        if (r.timeIn) {
+            const d = r.timeIn.toDate ? r.timeIn.toDate() : new Date(r.timeIn);
+            hourCounts[d.getHours()]++;
+        }
+    });
+    const hourLabels = Array.from({ length: 24 }, (_, i) => {
+        const hour = i % 12 || 12;
+        const ampm = i < 12 ? "AM" : "PM";
+        return `${hour} ${ampm}`;
+    });
+    const peakHoursData = hourCounts.map((count, i) => ({
+        hour: hourLabels[i],
+        count
+    }));
+
+    return { dailyData, completionData, peakHoursData };
+};
 
 const renderStandardChart = (data: any[], type: "pie" | "bar" | "line", nameKey: string, valueKey: string, isVerticalBar: boolean = false) => {
     if (data.length === 0) return <div className="h-full flex items-center justify-center text-muted-foreground">No data</div>;
@@ -122,13 +174,31 @@ const renderMonthlyPurposeChart = (data: any[], type: "bar" | "line", purposeKey
 };
 
 const DictAnalytics = () => {
-    const { data: visitors = [], isLoading } = useDictVisitorData();
+    const { data: visitors = [], isLoading: visitorsLoading } = useDictVisitorData();
+    const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+    const [attendanceLoading, setAttendanceLoading] = useState(true);
     const stats = computeDictStats(visitors);
+    const attendanceStats = computeAttendanceStats(attendanceRecords);
+
+    useEffect(() => {
+        const q = collection(dictDb, "dict_attendance");
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            })) as AttendanceRecord[];
+            setAttendanceRecords(data);
+            setAttendanceLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const [chart1Type, setChart1Type] = useState<"pie" | "bar" | "line">("bar");
     const [chart2Type, setChart2Type] = useState<"pie" | "bar" | "line">("pie");
     const [chart3Type, setChart3Type] = useState<"bar" | "line">("bar");
     const [chart4Type, setChart4Type] = useState<"pie" | "bar" | "line">("bar");
+
+    const isLoading = visitorsLoading || attendanceLoading;
 
     return (
         <>
@@ -244,6 +314,56 @@ const DictAnalytics = () => {
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
+
+                    <div className="pt-8 space-y-6">
+                        <div className="border-t pt-8">
+                            <h2 className="text-2xl font-heading font-bold text-foreground mb-2">Attendance Analytics</h2>
+                            <p className="text-muted-foreground mb-6">Insights into daily attendance patterns and completion rates</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Chart 1: Daily Attendance */}
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="font-heading text-lg">Daily Attendance Count</CardTitle>
+                                    <CardDescription>Unique people who logged in per day</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="h-[300px]">
+                                        {renderStandardChart(attendanceStats.dailyData, "bar", "date", "count")}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Chart 2: Completion Rate */}
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="font-heading text-lg">Attendance Completion Rate</CardTitle>
+                                    <CardDescription>Ratio of completed vs incomplete vs missed records</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="h-[300px]">
+                                        {renderStandardChart(attendanceStats.completionData, "pie", "name", "value")}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* Chart 3: Peak Hours */}
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="font-heading text-lg">Peak Arrival Hours</CardTitle>
+                                    <CardDescription>Distribution of time-in events across the day</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="h-[300px]">
+                                        {renderStandardChart(attendanceStats.peakHoursData, "bar", "hour", "count")}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
                 </div>
             )}
