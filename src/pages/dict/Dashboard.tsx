@@ -5,10 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData";
 import { Activity, CalendarDays, ClipboardCheck, TrendingUp, Users } from "lucide-react";
 import { useEffect, useState } from "react";
-import { collection, getFirestore, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { getDictTab, setDictTab, subscribeDictTab } from "@/lib/dictTabState";
+import { dictDb } from "@/lib/firebase-dict";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Helper to retrieve CSS variable values for Recharts
@@ -89,10 +90,9 @@ const DictDashboard = () => {
   }, []);
   const { data: visitors = [], attendance = [], isLoading } = useDictVisitorData();
 
-  const [attend, setAttend] = useState<Array<{ id: string; [key: string]: unknown }>>([]);
+  const [attend, setAttend] = useState<Array<{ id: string;[key: string]: unknown }>>([]);
   useEffect(() => {
-    const db = getFirestore();
-    const ref = collection(db, "dict_attendance");
+    const ref = collection(dictDb, "dict_attendance");
     const unsub = onSnapshot(ref, (snap) => {
       setAttend(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     }, (err) => {
@@ -101,11 +101,13 @@ const DictDashboard = () => {
     return () => unsub();
   }, []);
 
-  const todayStr = format(new Date(), "yyyy-MM-dd");
-  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-  const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-  const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
-  const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
+  const todayStr = new Date().toLocaleDateString('en-CA', {
+    timeZone: 'Asia/Manila'
+  });
+  const now = new Date();
+  const weekStart = format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const weekEnd = format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+  const monthStr = format(now, "yyyy-MM");
 
   const todayAttendance = attend.filter((a) => (a.date as string) === todayStr).length;
   const thisWeekAttendance = attend.filter((a) => {
@@ -114,7 +116,7 @@ const DictDashboard = () => {
   }).length;
   const thisMonthAttendance = attend.filter((a) => {
     const d = a.date as string;
-    return d >= monthStart && d <= monthEnd;
+    return d.startsWith(monthStr);
   }).length;
   const totalAttendance = attend.length;
 
@@ -190,7 +192,7 @@ const DictDashboard = () => {
 
       </div>
 
-       {/* Stat Cards */}
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {activeTab !== "attendance" && statCards.map((s) => (
           <div key={s.label} className="stat-card animate-fade-in shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-l-4" style={{ borderLeftColor: `hsl(var(--${s.color.split("-")[1]}))` }}>

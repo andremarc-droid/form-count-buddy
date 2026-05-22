@@ -118,103 +118,70 @@ const DictReports = () => {
 
       {/* Visitor Report Cards */}
       {activeTab !== "attendance" && (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Summary Cards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Today</span>
-              <span className="font-semibold">{globalStats.daily}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">This Week</span>
-              <span className="font-semibold">{globalStats.weekly}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">This Month</span>
-              <span className="font-semibold">{globalStats.monthly}</span>
-            </div>
-            <div className="flex justify-between border-t pt-3">
-              <span className="text-muted-foreground font-medium">Total</span>
-              <span className="font-bold">{globalStats.total}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Summary Cards */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-heading text-lg">Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Today</span>
+                <span className="font-semibold">{globalStats.daily}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">This Week</span>
+                <span className="font-semibold">{globalStats.weekly}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">This Month</span>
+                <span className="font-semibold">{globalStats.monthly}</span>
+              </div>
+              <div className="flex justify-between border-t pt-3">
+                <span className="text-muted-foreground font-medium">Total</span>
+                <span className="font-bold">{globalStats.total}</span>
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Industry Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">By Industry</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {stats.industryData.length === 0 ? (
-              <p className="text-muted-foreground">No data</p>
-            ) : (
-              stats.industryData.map((d) => (
-                <div key={d.name} className="flex justify-between">
-                  <span className="text-muted-foreground">{d.name}</span>
-                  <span className="font-semibold">{d.value} ({d.percentage}%)</span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+          {/* Industry Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-heading text-lg">By Industry</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {stats.industryData.length === 0 ? (
+                <p className="text-muted-foreground">No data</p>
+              ) : (
+                stats.industryData.map((d) => (
+                  <div key={d.name} className="flex justify-between">
+                    <span className="text-muted-foreground">{d.name}</span>
+                    <span className="font-semibold">{d.value} ({d.percentage}%)</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Purpose Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">By Purpose</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {stats.purposeData.length === 0 ? (
-              <p className="text-muted-foreground">No data</p>
-            ) : (
-              stats.purposeData.map((d) => (
-                <div key={d.name} className="flex justify-between">
-                  <span className="text-muted-foreground">{d.name}</span>
-                  <span className="font-semibold">{d.value} ({d.percentage}%)</span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Attendance Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">Attendance Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Today</span>
-              <span className="font-semibold">{attendanceStats.today}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">This Week</span>
-              <span className="font-semibold">{attendanceStats.weekly}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">This Month</span>
-              <span className="font-semibold">{attendanceStats.monthly}</span>
-            </div>
-            <div className="flex justify-between border-t pt-3">
-              <span className="text-muted-foreground font-medium">Total Records</span>
-              <span className="font-bold">{attendanceStats.total}</span>
-            </div>
-            <div className="flex justify-between text-destructive">
-              <span className="text-muted-foreground">Missed Out</span>
-              <span className="font-semibold">{attendanceStats.missedOut}</span>
-            </div>
-            <div className="flex justify-between text-primary">
-              <span className="text-muted-foreground">Completion Rate</span>
-              <span className="font-bold">{attendanceStats.completionRate}%</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Purpose Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-heading text-lg">By Purpose</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {stats.purposeData.length === 0 ? (
+                <p className="text-muted-foreground">No data</p>
+              ) : (
+                stats.purposeData.map((d) => (
+                  <div key={d.name} className="flex justify-between">
+                    <span className="text-muted-foreground">{d.name}</span>
+                    <span className="font-semibold">{d.value} ({d.percentage}%)</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Attendance Report Cards */}
