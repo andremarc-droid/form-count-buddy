@@ -6,7 +6,7 @@ import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData
 import { Activity, CalendarDays, ClipboardCheck, TrendingUp, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { collection, getFirestore, onSnapshot } from "firebase/firestore";
-import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
+import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { getDictTab, setDictTab, subscribeDictTab } from "@/lib/dictTabState";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
