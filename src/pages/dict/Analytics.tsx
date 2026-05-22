@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData";
-import { useEffect, useSearchParams, useState } from "react";
+import { useEffect, useState } from "react";
+import { getDictTab, setDictTab, subscribeDictTab } from "@/lib/dictTabState";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { collection, onSnapshot } from "firebase/firestore";
 import { dictDb } from "@/lib/firebase-dict";
@@ -177,8 +178,10 @@ const DictAnalytics = () => {
 
     const isLoading = visitorsLoading || attendanceLoading;
 
-    const [searchParams] = useSearchParams();
-    const activeTab = (searchParams.get("tab") as "attendance" | "visitors") || "attendance";
+    const [activeTab, setActiveTabState] = useState(getDictTab());
+    useEffect(() => {
+        return subscribeDictTab(() => setActiveTabState(getDictTab()));
+    }, []);
 
     const pageHeader = (
         <div className="page-header mb-8">

@@ -6,11 +6,14 @@ import type { DictVisitorRow } from "@/hooks/useDictVisitorData";
 import { computeDictStats, formatDictIndustryDetail, formatDictLabel, useDictVisitorData } from "@/hooks/useDictVisitorData";
 import { endOfWeek, format, startOfWeek } from "date-fns";
 import { Download, FileText } from "lucide-react";
-import { useSearchParams, useState } from "react";
+import { useState } from "react";
+import { getDictTab, setDictTab, subscribeDictTab } from "@/lib/dictTabState";
 
 const DictReports = () => {
-  const [searchParams] = useSearchParams();
-  const activeTab = (searchParams.get("tab") as "attendance" | "visitors") || "attendance";
+  const [activeTab, setActiveTabState] = useState(getDictTab());
+  useEffect(() => {
+    return subscribeDictTab(() => setActiveTabState(getDictTab()));
+  }, []);
   const { data: allVisitors = [], attendance = [], isLoading } = useDictVisitorData();
   const [reportType, setReportType] = useState("daily");
 

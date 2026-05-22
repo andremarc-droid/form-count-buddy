@@ -4,10 +4,11 @@ import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { computeDictStats, useDictVisitorData } from "@/hooks/useDictVisitorData";
 import { Activity, CalendarDays, ClipboardCheck, TrendingUp, Users } from "lucide-react";
-import { useEffect, useSearchParams, useState } from "react";
+import { useEffect, useState } from "react";
 import { collection, getFirestore, onSnapshot } from "firebase/firestore";
-import { addDays, endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
+import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek, subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { getDictTab, setDictTab, subscribeDictTab } from "@/lib/dictTabState";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Helper to retrieve CSS variable values for Recharts
@@ -82,8 +83,10 @@ const DynamicChart = ({ data, type, showLegend = false }: { data: any[], type: "
 };
 
 const DictDashboard = () => {
-  const [searchParams] = useSearchParams();
-  const activeTab = (searchParams.get("tab") as "attendance" | "visitors") || "attendance";
+  const [activeTab, setActiveTabState] = useState(getDictTab());
+  useEffect(() => {
+    return subscribeDictTab(() => setActiveTabState(getDictTab()));
+  }, []);
   const { data: visitors = [], attendance = [], isLoading } = useDictVisitorData();
 
   const [attend, setAttend] = useState<Array<{ id: string; [key: string]: unknown }>>([]);

@@ -9,8 +9,10 @@ import { cn } from "@/lib/utils";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { FileText, LayoutDashboard, LineChart, LogOut, Moon, Sun, Users, Clock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { setDictTab, subscribeDictTab, getDictTab } from "@/lib/dictTabState";
 import { useTheme } from "./theme-provider";
+import { setDictTab, subscribeDictTab, getDictTab } from "@/lib/dictTabState";
 
 const VISITORS_NAV = [
   { label: "Dashboard",  icon: LayoutDashboard, path: "/dict/admin/dashboard" },
@@ -34,32 +36,34 @@ const TABS = [
 const DictAdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const { theme, setTheme } = useTheme();
 
-  // Determine active tab from URL, default to "attendance"
-  const activeTab = (searchParams.get("tab") as "attendance" | "visitors") || "attendance";
+  const [activeTab, setActiveTabState] = useState(getDictTab());
+  useEffect(() => {
+    return subscribeDictTab(() => setActiveTabState(getDictTab()));
+  }, []);
+
   const currentNavItems = activeTab === "visitors" ? VISITORS_NAV : ATTENDANCE_NAV;
 
-  // Keep non-dashboard nav items in sync with the active tab (update URL, redirect if on wrong page)
+  // Keep non-dashboard nav items in sync with the active tab (redirect if on wrong page)
   useEffect(() => {
     if (location.pathname === "/dict/admin/dashboard") return;
     const shouldRedirect = activeTab === "visitors"
       ? location.pathname === "/dict/admin/attendance"
-      : (location.pathname === "/dict/admin/visitors");
+      : location.pathname === "/dict/admin/visitors";
     if (shouldRedirect) {
-      navigate(`/dict/admin/dashboard?tab=${activeTab}`, { replace: true });
+      navigate("/dict/admin/dashboard", { replace: true });
     }
   }, [activeTab, location.pathname, navigate]);
 
   // When clicking a section tab, navigate appropriately
   const switchTab = (tab: "attendance" | "visitors") => {
-    setSearchParams({ tab });
+    setDictTab(tab);
     const isAttendancePage = location.pathname === "/dict/admin/attendance";
     const isVisitorsPage = location.pathname === "/dict/admin/visitors";
     if ((tab === "visitors" && isAttendancePage) || (tab === "attendance" && isVisitorsPage)) {
-      navigate(`/dict/admin/dashboard?tab=${tab}`);
+      navigate("/dict/admin/dashboard");
     }
   };
 
