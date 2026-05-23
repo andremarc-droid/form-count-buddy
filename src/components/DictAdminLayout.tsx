@@ -12,7 +12,6 @@ import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { setDictTab, subscribeDictTab, getDictTab } from "@/lib/dictTabState";
 import { useTheme } from "./theme-provider";
-import { setDictTab, subscribeDictTab, getDictTab } from "@/lib/dictTabState";
 
 const VISITORS_NAV = [
   { label: "Dashboard",  icon: LayoutDashboard, path: "/dict/admin/dashboard" },
@@ -201,6 +200,24 @@ const DictAdminLayout = () => {
             </Button>
           </div>
         </header >
+
+        {/* Mobile Tab Switcher */}
+        <div className="md:hidden flex gap-2 p-2 bg-muted/50 border-b">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => switchTab(t.key)}
+              className={cn(
+                "flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                activeTab === t.key
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-background text-muted-foreground hover:text-foreground border border-border"
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
         <div className="flex-1 overflow-auto p-4 pb-20 md:p-8 md:pb-8">
           <Outlet />
